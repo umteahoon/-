@@ -1,0 +1,250 @@
+/* 기본 스타일 (라이트 모드) */
+body {
+    display: flex;
+    flex-direction: column; /* 세로로 정렬되도록 변경 */
+    justify-content: flex-start; /* 상단에 정렬 */
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding-top: 20px; /* 상단에 여백 추가 */
+    background-color: #f0f0f0; 
+    font-family: Arial, sans-serif;
+    color: #333;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+#game-container {
+    text-align: center;
+    padding: 20px;
+    border: 5px solid #f1c40f;
+    border-radius: 10px;
+    background-color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+    /* 캔버스 크기 875px에 맞춰 최대 너비 조정 */
+    max-width: 925px; 
+    margin-top: 20px; /* 게임 설명 섹션과의 간격 */
+}
+
+#status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* 캔버스 크기에 맞춰 배경색 유지 */
+#gameCanvas {
+    background-color: #ecf0f1; 
+    border: 2px solid #bdc3c7;
+    display: block;
+    margin: 0 auto;
+}
+
+#score-board {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+/* 퀴즈 오버레이 */
+#quiz-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.98); 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+    padding: 20px;
+    box-sizing: border-box;
+    color: #333;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); 
+}
+
+#quiz-overlay input, #quiz-overlay button {
+    padding: 10px;
+    margin-top: 10px;
+    font-size: 1.1em;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+#quiz-overlay button {
+    cursor: pointer;
+    background-color: #2ecc71;
+    color: white;
+    font-weight: bold;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* 게임 오버 오버레이 (캔버스 중앙에 오버레이) */
+#message {
+    position: absolute;
+    /* 캔버스 시작점(상태바/H1 아래 패딩 20px) + 캔버스 높이의 절반(525px / 2) */
+    top: calc(20px + 525px / 2); 
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    background: rgba(0, 0, 0, 0.9);
+    padding: 30px;
+    border-radius: 10px;
+    border: 3px solid red;
+    z-index: 30;
+    text-align: center;
+    color: white;
+}
+
+/* 추가된 이름 입력 및 버튼 스타일 */
+#message input, #message button {
+    margin: 5px;
+    padding: 10px;
+    font-size: 1em;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+#message #save-score-button {
+    background-color: #3498db;
+    color: white;
+    cursor: pointer;
+}
+
+#message button[onclick="window.location.reload()"] {
+    background-color: #2ecc71;
+    color: white;
+    font-weight: bold;
+}
+
+/* ---------------- 게임 정보 섹션 스타일 ---------------- */
+#game-info {
+    /* 캔버스 너비(875px)와 거의 같게 최대 너비를 조정 */
+    max-width: 875px; 
+    padding: 15px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    text-align: left;
+    background-color: #fff;
+    color: #333;
+    margin-bottom: 20px; /* 게임 컨테이너와의 간격 */
+}
+
+#game-info h2, #game-info h3 {
+    text-align: center;
+    color: #f1c40f;
+    border-bottom: 1px dashed #eee;
+    padding-bottom: 5px;
+    margin-top: 10px;
+}
+
+#game-info ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+#game-info li {
+    margin-bottom: 5px;
+    line-height: 1.4;
+}
+
+/* ---------------- 명예의 전당 섹션 스타일 (추가) ---------------- */
+#high-scores {
+    /* #game-info와 너비 및 정렬을 맞춥니다. */
+    max-width: 875px; 
+    padding: 15px;
+    border: 2px solid #f1c40f;
+    border-radius: 8px;
+    text-align: center;
+    background-color: #fff;
+    color: #333;
+    margin-top: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+#high-scores h2 {
+    color: #f1c40f;
+    border-bottom: 2px solid #f1c40f;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+#high-scores ul {
+    list-style-type: none;
+    padding: 0;
+    font-size: 1.2em;
+}
+
+#high-scores li {
+    padding: 5px 0;
+    border-bottom: 1px dashed #eee;
+}
+
+#high-scores li:last-child {
+    border-bottom: none;
+}
+
+
+/* ---------------- 다크 모드 스타일 ---------------- */
+body.dark-mode {
+    background-color: #212121;
+    color: #e0e0e0;
+}
+
+body.dark-mode #game-container {
+    background-color: #333;
+    border-color: #ffeb3b;
+}
+
+body.dark-mode #gameCanvas {
+    background-color: #2c3e50;
+    border-color: #757575;
+}
+
+body.dark-mode #quiz-overlay {
+    background: rgba(0, 0, 0, 0.98);
+    color: #e0e0e0;
+}
+
+body.dark-mode #quiz-overlay input {
+    background-color: #444;
+    color: #e0e0e0;
+    border: 1px solid #777;
+}
+
+body.dark-mode .mode-toggle-button,
+body.dark-mode #quiz-overlay button {
+    background-color: #555;
+    color: #fff;
+    border: 1px solid #777;
+}
+
+body.dark-mode #game-info {
+    background-color: #333;
+    color: #e0e0e0;
+    border-color: #777;
+}
+
+body.dark-mode #game-info h2, body.dark-mode #game-info h3 {
+    border-bottom-color: #555;
+    color: #ffeb3b;
+}
+
+body.dark-mode #high-scores {
+    background-color: #333;
+    color: #e0e0e0;
+    border-color: #ffeb3b;
+}
+
+body.dark-mode #high-scores h2 {
+    border-bottom-color: #ffeb3b;
+}
+
+body.dark-mode #high-scores li {
+    border-bottom-color: #555;
+}
