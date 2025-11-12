@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🧀 치즈 헌터</title>
     <link rel="stylesheet" href="style.css">
-    
+
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-analytics.js"></script>
 
-</head>
+    </head>
 <body>
     
 <div id="game-info">
@@ -26,7 +26,7 @@
             <li>**💣 폭탄:** 닿으면 퀴즈 없이 즉시 **꼬리 3칸 감소** (주의!).</li>
             <li>**🍄 버섯:** 5초간 이동 속도가 2배로 **빨라집니다**.</li>
             <li>**⏳ 시계:** 5초간 이동 속도가 1/2배로 **느려집니다**.</li>
-            <li>~~🔫 고양이 무기: 닿으면 꼬리가 감소하며, 고양이의 원거리 총알 공격이 5초간 활성화됩니다.~~</li>
+            <li>**🔫 고양이 무기:** 닿으면 꼬리가 감소하며, **고양이의 원거리 총알 공격**이 5초간 활성화됩니다.</li>
         </ul>
     </div>
 
@@ -51,20 +51,24 @@
             <input type="text" id="player-name-input" placeholder="이름 입력 (3자 이하)" maxlength="3">
             <button id="save-score-button">점수 등록</button>
             <button id="share-score-button">점수 공유하기 🚀</button>
-            <button onclick="window.location.reload()">다시 시작</button>
+            <button onclick="initializeGame()">다시 시작</button>
         </div>
     </div>
+    
+    <div style="text-align: center; margin: 20px 0; max-width: 925px;">
+        <p style="color: gray;">[여기에 AdSense 광고가 표시됩니다]</p>
+    </div>
 
-    <div id="high-scores-container">
+    <div id="high-scores-container" style="max-width: 925px;">
         <h2>🏆 명예의 전당 (Top 10)</h2>
-        <ol id="high-scores-list">
+        <ol id="high-scores-list" style="list-style-position: inside; padding: 0;">
             <li>점수를 로드 중입니다...</li>
         </ol>
     </div>
     
     <script src="game.js"></script>
 
-    <footer style="text-align: center; padding: 20px 0; margin-top: 30px; border-top: 1px solid #ccc; width: 100%; max-width: 925px; margin-left: auto; margin-right: auto;">
+    <footer style="text-align: center; padding: 20px 0; margin-top: 30px; border-top: 1px solid #ccc; width: 100%; max-width: 925px;">
         <a href="privacy.html" style="margin: 0 10px; text-decoration: none; color: #333;">개인정보처리방침</a> | 
         <a href="terms.html" style="margin: 0 10px; text-decoration: none; color: #333;">이용약관</a> | 
         <a href="about.html" style="margin: 0 10px; text-decoration: none; color: #333;">About & Contact</a>
