@@ -1,18 +1,8 @@
 // 헌터.zip/헌터/game.js
 
 // ===================================================================
-// 0. Firebase 객체 참조 (window에서 전역으로 노출된 모듈 함수 사용)
+// 0. Firebase 설정 및 초기화 (제거됨)
 // ===================================================================
-// window 객체에서 전역으로 노출된 Firebase 모듈 함수들을 참조합니다.
-// 이 객체들이 index.html의 <script type="module"> 태그에 의해 초기화됩니다.
-const db = window.db; 
-const serverTimestamp = window.serverTimestamp;
-const getDocs = window.getDocs;
-const query = window.query;
-const orderBy = window.orderBy;
-const limit = window.limit;
-const collection = window.collection;
-const addDoc = window.addDoc;
 
 // ===================================================================
 // 1. HTML 요소 및 기본 설정
@@ -27,12 +17,13 @@ const quizQuestionElement = document.getElementById('quiz-question');
 const quizInput = document.getElementById('quiz-input');
 const quizSubmitButton = document.getElementById('quiz-submit-button');
 const darkModeToggle = document.getElementById('dark-mode-toggle');
+
 // 명예의 전당 및 공유 관련 요소
 const playerNameInput = document.getElementById('player-name-input');
 const saveScoreButton = document.getElementById('save-score-button');
 const shareScoreButton = document.getElementById('share-score-button');
 const highScoresList = document.getElementById('high-scores-list');
-
+const resetScoresButton = document.getElementById('reset-scores-button'); // [추가] 초기화 버튼
 
 const gridSize = 35; 
 const tileCount = canvas.width / gridSize; 
@@ -79,6 +70,8 @@ let weaponInterval = null;
 let comboMessage = ''; 
 let comboMessageTimer = null; 
 const comboMessageDuration = 1000; 
+
+// [추가] 점수 팝업 피드백 변수
 let scorePopups = [];
 
 // 명예의 전당 로직
@@ -119,7 +112,7 @@ function initializeGame() {
     if (weaponInterval) clearInterval(weaponInterval);
     bullets = [];
     
-    loadHighScores(); 
+    loadHighScores(); // [추가] 게임 시작 시 점수판 로드
 
     startGameLoop(); 
 }
@@ -407,19 +400,91 @@ function resetCombo() {
 // ===================================================================
 
 function drawGame() {
-    // ... (기존 그리기 로직 유지)
-    
-    // 콤보 메시지 그리기 (생략)
-    
-    // 점수 팝업 그리기 및 업데이트 (생략)
+    // 캔버스 초기화
+    ctx.fillStyle = document.body.classList.contains('dark-mode') ? '#2c3e50' : '#ecf0f1';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 일시정지 메시지 그리기 (생략)
+    // 뱀 그리기
+    snake.forEach((segment, index) => {
+        ctx.fillStyle = index === 0 ? '#16a085' : '#1abc9c';
+        ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+        ctx.strokeStyle = '#2c3e50';
+        ctx.strokeRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+    });
     
-    // ... (나머지 그리기 로직 유지)
+    // 아이템 그리기
+    drawItem(cheese, '#f1c40f', '🧀');
+    drawItem(bomb, '#c0392b', '💣');
+    drawItem(mushroom, '#8e44ad', '🍄');
+    drawItem(clock, '#3498db', '⏳');
+    drawItem(bigCheese, '#ffd700', '🥇');
+    drawItem(catWeapon, '#e74c3c', '🔫');
+
+    // 총알 그리기
+    bullets.forEach(bullet => {
+        ctx.fillStyle = '#e74c3c';
+        ctx.fillRect(bullet.x * gridSize + 5, bullet.y * gridSize + 5, gridSize - 10, gridSize - 10);
+    });
+
+    // 콤보 메시지 그리기
+    if (comboMessage) {
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 30px Arial';
+        ctx.shadowColor = 'black';
+        ctx.shadowBlur = 5;
+        ctx.fillStyle = comboMessage.includes('BREAK') ? '#e74c3c' : '#f1c40f';
+        ctx.fillText(comboMessage, canvas.width / 2, 50);
+        ctx.shadowBlur = 0;
+    }
+    
+    // [추가] 점수 팝업 그리기 및 업데이트
+    scorePopups = scorePopups.filter(popup => popup.alpha > 0);
+    scorePopups.forEach(popup => {
+        ctx.globalAlpha = popup.alpha;
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 20px Arial';
+        ctx.fillStyle = popup.color;
+        
+        ctx.fillText(popup.text, popup.x, popup.y);
+
+        // 팝업 이동 및 투명도 감소
+        popup.y -= 1; 
+        popup.alpha -= 0.03; 
+        popup.timer++;
+    });
+    ctx.globalAlpha = 1.0; 
+
+    // [추가] 일시정지 메시지 그리기
+    if (isPaused && isGameActive && quizOverlay.classList.contains('hidden')) {
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 40px Arial';
+        ctx.fillStyle = document.body.classList.contains('dark-mode') ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)';
+        ctx.fillText("PAUSED", canvas.width / 2, canvas.height / 2);
+    }
+    
+    // 레벨/배율 정보 그리기
+    ctx.textAlign = 'left';
+    ctx.font = '14px Arial';
+    ctx.fillStyle = 'white';
+    ctx.fillText(`Level: ${level}`, 10, 15);
+
+    if (comboMultiplier > 1) {
+        ctx.fillStyle = '#f1c40f'; 
+        ctx.font = 'bold 18px Arial';
+        ctx.textAlign = 'right';
+        ctx.fillText(`x ${comboMultiplier.toFixed(1)}`, canvas.width - 10, 15);
+    }
+
+    scoreDisplay.textContent = score;
 }
 
 function drawItem(item, color, symbol) {
-    // ... (기존 그리기 로직 유지)
+    ctx.fillStyle = color;
+    ctx.fillRect(item.x * gridSize, item.y * gridSize, gridSize, gridSize);
+    ctx.font = '16px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(symbol, item.x * gridSize + gridSize / 2, item.y * gridSize + gridSize / 2 + 1);
 }
 
 // ===================================================================
@@ -441,49 +506,33 @@ function gameOver() {
     playerNameInput.focus();
 }
 
-// [명예의 전당] 로직: Firestore에서 점수를 로드 (v9 모듈 방식)
-async function loadHighScores() {
-    if (!highScoresList || !db) return; 
+// [로컬 스토리지] 명예의 전당 로드 (Firebase 로직 대체)
+function loadHighScores() {
+    // highScoresList가 존재하지 않으면 로드 시도하지 않음
+    if (!highScoresList) return; 
     
-    highScoresList.innerHTML = `<li>점수를 로드 중입니다...</li>`;
+    // 로컬 스토리지에서 점수 로드
+    const scores = JSON.parse(localStorage.getItem('highScores')) || [];
+    scores.sort((a, b) => b.score - a.score);
     
-    try {
-        const q = query(
-            collection(db, "scores"), // Firestore Collection 함수 사용
-            orderBy("score", "desc"),
-            limit(MAX_HIGH_SCORES)
-        );
-        const querySnapshot = await getDocs(q); // Firestore getDocs 함수 사용
+    // UI 업데이트
+    highScoresList.innerHTML = scores.slice(0, MAX_HIGH_SCORES).map((item, index) => {
+        const displayScore = item.score !== undefined ? item.score : 0;
+        const displayName = item.name || "UNNAMED";
+        return `<li>${index + 1}. ${displayName} - ${displayScore}점</li>`;
+    }).join('');
 
-        const scores = [];
-        querySnapshot.forEach((doc) => {
-            scores.push(doc.data());
-        });
-
-        // UI 업데이트
-        highScoresList.innerHTML = scores.map((item, index) => {
-            const displayScore = item.score !== undefined ? item.score : 0;
-            const displayName = item.name || "UNNAMED";
-            return `<li>${index + 1}. ${displayName} - ${displayScore}점</li>`;
-        }).join('');
-        
-        if (scores.length === 0) {
-             highScoresList.innerHTML = `<li>아직 등록된 점수가 없습니다.</li>`;
-        }
-
-    } catch (error) {
-        console.error("Error loading high scores: ", error);
-        highScoresList.innerHTML = `<li>점수 로드 실패! Firebase 설정(규칙)을 확인하세요.</li>`;
+    if (scores.length === 0) {
+        highScoresList.innerHTML = `<li>아직 등록된 점수가 없습니다.</li>`;
     }
 }
 
-// [명예의 전당] 로직: Firestore에 점수를 저장 (v9 모듈 방식)
-async function saveHighScore() {
+// [로컬 스토리지] 명예의 전당 점수를 저장 (Firebase 로직 대체)
+function saveHighScore() {
     if (saveScoreButton.disabled) return;
     
     let name = playerNameInput.value.trim().toUpperCase();
     
-    // 이름 길이 제한 및 필터링
     name = name.substring(0, 3);
     name = name.replace(/[^A-Z0-9ㄱ-ㅎ가-힣]/g, ''); 
     
@@ -493,51 +542,37 @@ async function saveHighScore() {
 
     const newScore = { 
         score: score, 
-        name: name,
-        timestamp: serverTimestamp() // Firestore serverTimestamp 함수 사용
+        name: name
     };
     
-    // 버튼 비활성화 (등록 중...)
     saveScoreButton.disabled = true;
     saveScoreButton.textContent = '등록 중...';
 
-    try {
-        await addDoc(collection(db, "scores"), newScore); // Firestore addDoc/Collection 함수 사용
-        alert(`${name}님의 ${score}점이 명예의 전당에 등록되었습니다!`);
-        
-        // UI 업데이트 및 버튼/입력창 숨기기
-        loadHighScores();
-        playerNameInput.classList.add('hidden');
-        saveScoreButton.classList.add('hidden');
-    } catch (error) {
-        console.error("Error writing document: ", error);
-        alert("점수 등록에 실패했습니다. (콘솔 확인)");
-        saveScoreButton.disabled = false;
-        saveScoreButton.textContent = '점수 등록';
-    }
+    // 로컬 스토리지에 저장
+    const scores = JSON.parse(localStorage.getItem('highScores')) || [];
+    scores.push(newScore);
+    scores.sort((a, b) => b.score - a.score);
+    
+    localStorage.setItem('highScores', JSON.stringify(scores.slice(0, MAX_HIGH_SCORES)));
+
+    alert(`${name}님의 ${score}점이 명예의 전당에 등록되었습니다!`);
+    
+    loadHighScores();
+    playerNameInput.classList.add('hidden');
+    saveScoreButton.classList.add('hidden');
 }
 
-// [추가] 소셜 공유 기능
-function shareScore() {
-    const finalScore = score;
-    const playerName = playerNameInput.value.trim().substring(0, 3) || '치즈 헌터';
-    const gameUrl = window.location.href.split('?')[0]; 
-    
-    const text = `🏆 치즈 헌터: ${playerName}님이 ${finalScore}점으로 게임 오버! 내가 최고 점수를 달성할 수 있을까? 지금 도전하세요!`;
-
-    if (navigator.share) {
-        navigator.share({
-            title: '🧀 치즈 헌터 게임',
-            text: text,
-            url: gameUrl,
-        }).catch((error) => console.log('공유 실패', error));
-    } else {
-        const encodedText = encodeURIComponent(text);
-        const encodedUrl = encodeURIComponent(gameUrl);
-        
-        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`;
-        window.open(twitterUrl, '_blank', 'width=600,height=400');
+// 명예의 전당 초기화 기능
+function resetHighScores() {
+    if (confirm("정말 명예의 전당 점수를 모두 초기화하시겠습니까? (이 작업은 되돌릴 수 없습니다)")) {
+        localStorage.removeItem('highScores');
+        loadHighScores();
+        alert("점수가 초기화되었습니다!");
     }
+}
+// [추가] 로컬 스토리지 초기화 버튼 이벤트 리스너
+if (resetScoresButton) {
+    resetScoresButton.addEventListener('click', resetHighScores);
 }
 
 
