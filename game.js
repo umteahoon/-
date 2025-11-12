@@ -1,5 +1,5 @@
 // ===================================================================
-// 0. Firebase 설정 및 초기화 (최상단에 추가)
+// 0. Firebase 설정 및 초기화
 // ===================================================================
 
 const firebaseConfig = {
@@ -205,10 +205,10 @@ function initializeGame() {
     messageDisplay.classList.add('hidden');
     quizOverlay.classList.add('hidden');
     
-    // [추가] 명예의 전당 UI 숨김 및 초기화
-    playerNameInput.classList.remove('hidden');
-    saveScoreButton.classList.remove('hidden');
-    shareScoreButton.classList.add('hidden'); // 게임 시작 시 숨김
+    // [추가] 명예의 전당 UI 초기화 및 숨김 설정
+    playerNameInput.classList.add('hidden');
+    saveScoreButton.classList.add('hidden');
+    shareScoreButton.classList.add('hidden');
     
     scoreDisplay.textContent = score;
 
@@ -236,13 +236,13 @@ function startGameLoop() {
 
 // [추가] 일시정지/재개 토글 함수
 function togglePause() {
-    if (!isGameActive) return; // 게임 오버 상태에서는 작동 안 함
+    if (!isGameActive) return; 
     
     isPaused = !isPaused;
     
     if (isPaused) {
         clearInterval(gameLoop);
-        drawGame(); // 일시정지 메시지 표시를 위해 다시 그리기
+        drawGame(); 
     } else {
         startGameLoop();
     }
@@ -622,6 +622,9 @@ function gameOver() {
 
 // [추가/수정] 명예의 전당 로직: Firestore에서 점수를 로드
 async function loadHighScores() {
+    // highScoresList가 존재하지 않으면 (index.html 오류시) 로드 시도하지 않음
+    if (!highScoresList) return; 
+    
     highScoresList.innerHTML = `<li>점수를 로드 중입니다...</li>`;
     
     try {
@@ -647,9 +650,9 @@ async function loadHighScores() {
         }
 
     } catch (error) {
+        // Firebase 오류 시, 게임은 계속 진행되어야 하므로 alert 대신 콘솔에만 표시
         console.error("Error loading high scores: ", error);
-        highScoresList.innerHTML = `<li>점수 로드 실패! 콘솔을 확인하세요.</li>`;
-        alert("점수 로드에 실패했습니다. Firebase 설정(규칙)을 확인하세요.");
+        highScoresList.innerHTML = `<li>점수 로드 실패! Firebase 설정(규칙)을 확인하세요.</li>`;
     }
 }
 
@@ -746,9 +749,10 @@ document.addEventListener('keydown', (e) => {
         newDirection = { x: 1, y: 0 };
         handled = true;
     } 
-    // Enter 키로 게임 재시작 기능
+    // Enter 키로 게임 재시작 기능 (점수 등록 UI가 보이지 않을 때만)
     else if (e.key === 'Enter' && messageDisplay.classList.contains('hidden') === false && playerNameInput.classList.contains('hidden')) {
-        window.location.reload();
+        // [수정] initializeGame() 함수 직접 호출
+        initializeGame();
         handled = true;
     }
     
