@@ -55,12 +55,12 @@
 ```js
 const quizData = [
   {
-    question: "ㅅㅍ",     // 초성
+    question: "ㅅㄱ",     // 초성
     answer: "사과",       // 정답
     hint: "빨갛고 달콤한 과일"  // 힌트
   },
   {
-    question: "ㅂㄹㅈ", 
+    question: "ㅂㄴㄴ", 
     answer: "바나나", 
     hint: "노란색 열대과일"
   },
