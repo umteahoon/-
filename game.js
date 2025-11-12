@@ -1,8 +1,17 @@
-// 헌터.zip/헌터/game.js
+// 헌터.zip/헌터/game.js (최종 코드)
 
 // ===================================================================
-// 0. Firebase 설정 및 초기화 (제거됨)
+// 0. Firebase 객체 참조 (window에서 전역으로 노출된 모듈 함수 사용)
 // ===================================================================
+// window 객체에서 전역으로 노출된 Firebase 모듈 함수들을 참조합니다.
+const db = window.db; 
+const serverTimestamp = window.serverTimestamp;
+const getDocs = window.getDocs;
+const query = window.query;
+const orderBy = window.orderBy;
+const limit = window.limit;
+const collection = window.collection;
+const addDoc = window.addDoc;
 
 // ===================================================================
 // 1. HTML 요소 및 기본 설정
@@ -17,13 +26,12 @@ const quizQuestionElement = document.getElementById('quiz-question');
 const quizInput = document.getElementById('quiz-input');
 const quizSubmitButton = document.getElementById('quiz-submit-button');
 const darkModeToggle = document.getElementById('dark-mode-toggle');
-
 // 명예의 전당 및 공유 관련 요소
 const playerNameInput = document.getElementById('player-name-input');
 const saveScoreButton = document.getElementById('save-score-button');
 const shareScoreButton = document.getElementById('share-score-button');
 const highScoresList = document.getElementById('high-scores-list');
-const resetScoresButton = document.getElementById('reset-scores-button'); // [추가] 초기화 버튼
+
 
 const gridSize = 35; 
 const tileCount = canvas.width / gridSize; 
@@ -70,8 +78,6 @@ let weaponInterval = null;
 let comboMessage = ''; 
 let comboMessageTimer = null; 
 const comboMessageDuration = 1000; 
-
-// [추가] 점수 팝업 피드백 변수
 let scorePopups = [];
 
 // 명예의 전당 로직
@@ -81,7 +87,8 @@ const MAX_HIGH_SCORES = 10;
 // 2. 초기화 및 유틸리티 함수
 // ===================================================================
 
-function initializeGame() {
+// [수정] initializeGame 함수를 비동기 함수로 변경
+async function initializeGame() {
     isGameActive = true;
     score = 0;
     currentSpeed = initialSpeed;
@@ -112,7 +119,8 @@ function initializeGame() {
     if (weaponInterval) clearInterval(weaponInterval);
     bullets = [];
     
-    loadHighScores(); // [추가] 게임 시작 시 점수판 로드
+    // [핵심 수정]: await을 사용하여 명예의 전당 로드가 완료될 때까지 기다립니다.
+    await loadHighScores(); 
 
     startGameLoop(); 
 }
@@ -502,33 +510,65 @@ function gameOver() {
     
     playerNameInput.classList.remove('hidden');
     saveScoreButton.classList.remove('hidden');
-    shareScoreButton.classList.remove('hidden');
+    shareScoreButton.classList.remove('hidden'); 
     playerNameInput.focus();
 }
 
-// [로컬 스토리지] 명예의 전당 로드 (Firebase 로직 대체)
-function loadHighScores() {
-    // highScoresList가 존재하지 않으면 로드 시도하지 않음
+// [명예의 전당] 로직: Firestore에서 점수를 로드 (비동기)
+async function loadHighScores() {
     if (!highScoresList) return; 
     
-    // 로컬 스토리지에서 점수 로드
-    const scores = JSON.parse(localStorage.getItem('highScores')) || [];
-    scores.sort((a, b) => b.score - a.score);
+    highScoresList.innerHTML = `<li>점수를 로드 중입니다...</li>`;
     
-    // UI 업데이트
-    highScoresList.innerHTML = scores.slice(0, MAX_HIGH_SCORES).map((item, index) => {
-        const displayScore = item.score !== undefined ? item.score : 0;
-        const displayName = item.name || "UNNAMED";
-        return `<li>${index + 1}. ${displayName} - ${displayScore}점</li>`;
-    }).join('');
+    // Firebase 객체가 준비되지 않았거나 오류가 발생하면 로컬 스토리지로 대체
+    if (!db || !getDocs || !query) {
+         // Firebase 오류 시 로컬 스토리지 로직 (임시 대체)
+        const scores = JSON.parse(localStorage.getItem('highScores')) || [];
+        scores.sort((a, b) => b.score - a.score);
+        
+        highScoresList.innerHTML = scores.slice(0, MAX_HIGH_SCORES).map((item, index) => {
+            const displayScore = item.score !== undefined ? item.score : 0;
+            const displayName = item.name || "UNNAMED";
+            return `<li>${index + 1}. ${displayName} - ${displayScore}점</li>`;
+        }).join('');
+        
+        if (scores.length === 0) {
+            highScoresList.innerHTML = `<li>아직 등록된 점수가 없습니다.</li>`;
+        }
+        return;
+    }
+    
+    try {
+        const q = query(
+            collection(db, "scores"),
+            orderBy("score", "desc"),
+            limit(MAX_HIGH_SCORES)
+        );
+        const querySnapshot = await getDocs(q); 
 
-    if (scores.length === 0) {
-        highScoresList.innerHTML = `<li>아직 등록된 점수가 없습니다.</li>`;
+        const scores = [];
+        querySnapshot.forEach((doc) => {
+            scores.push(doc.data());
+        });
+
+        highScoresList.innerHTML = scores.map((item, index) => {
+            const displayScore = item.score !== undefined ? item.score : 0;
+            const displayName = item.name || "UNNAMED";
+            return `<li>${index + 1}. ${displayName} - ${displayScore}점</li>`;
+        }).join('');
+        
+        if (scores.length === 0) {
+             highScoresList.innerHTML = `<li>아직 등록된 점수가 없습니다.</li>`;
+        }
+
+    } catch (error) {
+        console.error("Error loading high scores: ", error);
+        highScoresList.innerHTML = `<li>점수 로드 실패! Firebase 설정(규칙/API 키)을 확인하세요.</li>`;
     }
 }
 
-// [로컬 스토리지] 명예의 전당 점수를 저장 (Firebase 로직 대체)
-function saveHighScore() {
+// [명예의 전당] 로직: Firestore에 점수를 저장 (v9 모듈 방식)
+async function saveHighScore() {
     if (saveScoreButton.disabled) return;
     
     let name = playerNameInput.value.trim().toUpperCase();
@@ -542,35 +582,44 @@ function saveHighScore() {
 
     const newScore = { 
         score: score, 
-        name: name
+        name: name,
+        timestamp: serverTimestamp() 
     };
     
     saveScoreButton.disabled = true;
     saveScoreButton.textContent = '등록 중...';
 
-    // 로컬 스토리지에 저장
-    const scores = JSON.parse(localStorage.getItem('highScores')) || [];
-    scores.push(newScore);
-    scores.sort((a, b) => b.score - a.score);
-    
-    localStorage.setItem('highScores', JSON.stringify(scores.slice(0, MAX_HIGH_SCORES)));
+    // Firebase 객체가 준비되지 않았으면 저장하지 않음
+    if (!db || !addDoc || !collection) {
+        alert("Firebase 연결 오류로 점수 등록에 실패했습니다. (콘솔 확인)");
+        saveScoreButton.disabled = false;
+        saveScoreButton.textContent = '점수 등록';
+        return;
+    }
 
-    alert(`${name}님의 ${score}점이 명예의 전당에 등록되었습니다!`);
-    
-    loadHighScores();
-    playerNameInput.classList.add('hidden');
-    saveScoreButton.classList.add('hidden');
+    try {
+        await addDoc(collection(db, "scores"), newScore); 
+        alert(`${name}님의 ${score}점이 명예의 전당에 등록되었습니다!`);
+        
+        loadHighScores();
+        playerNameInput.classList.add('hidden');
+        saveScoreButton.classList.add('hidden');
+    } catch (error) {
+        console.error("Error writing document: ", error);
+        alert("점수 등록에 실패했습니다. (콘솔 확인)");
+        saveScoreButton.disabled = false;
+        saveScoreButton.textContent = '점수 등록';
+    }
 }
 
 // 명예의 전당 초기화 기능
 function resetHighScores() {
-    if (confirm("정말 명예의 전당 점수를 모두 초기화하시겠습니까? (이 작업은 되돌릴 수 없습니다)")) {
+    if (confirm("정말 명예의 전당 점수를 모두 초기화하시겠습니까? (로컬 저장소만 초기화됩니다)")) {
         localStorage.removeItem('highScores');
         loadHighScores();
         alert("점수가 초기화되었습니다!");
     }
 }
-// [추가] 로컬 스토리지 초기화 버튼 이벤트 리스너
 if (resetScoresButton) {
     resetScoresButton.addEventListener('click', resetHighScores);
 }
