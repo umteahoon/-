@@ -4,8 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🧀 치즈 헌터</title>
-    
     <link rel="stylesheet" href="style.css">
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-analytics.js"></script>
+
 </head>
 <body>
     
@@ -22,7 +26,7 @@
             <li>**💣 폭탄:** 닿으면 퀴즈 없이 즉시 **꼬리 3칸 감소** (주의!).</li>
             <li>**🍄 버섯:** 5초간 이동 속도가 2배로 **빨라집니다**.</li>
             <li>**⏳ 시계:** 5초간 이동 속도가 1/2배로 **느려집니다**.</li>
-            <li>~~🔫 고양이 무기: 닿으면 꼬리가 감소하며, 고양이의 원거리 총알 공격이 5초간 활성화됩니다.~~</li>
+            <li>**🔫 고양이 무기:** 닿으면 꼬리가 감소하며, **고양이의 원거리 총알 공격**이 5초간 활성화됩니다.</li>
         </ul>
     </div>
 
@@ -33,7 +37,7 @@
             <button id="dark-mode-toggle" class="mode-toggle-button">🌙 다크 모드</button>
         </div>
         
-        <canvas id="gameCanvas" width="875" height="525"></canvas> 
+        <canvas id="gameCanvas" width="700" height="700"></canvas> 
         
         <div id="quiz-overlay" class="hidden">
             <p id="quiz-question"></p>
@@ -43,31 +47,20 @@
 
         <div id="message" class="hidden">
             <h2>게임 오버!</h2>
-            <p id="final-score"></p>
-            <input type="text" id="player-name-input" placeholder="이름 입력 (3자 이하)" maxlength="3" class="hidden">
-            <button id="save-score-button" class="hidden">점수 등록</button>
+            <p id="final-score">최종 점수: 0점</p>
+            <input type="text" id="player-name-input" placeholder="이름 입력 (3자 이하)" maxlength="3">
+            <button id="save-score-button">점수 등록</button>
+            <button id="share-score-button">점수 공유하기 🚀</button>
             <button onclick="window.location.reload()">다시 시작</button>
         </div>
     </div>
-    
-    <div style="text-align: center; margin: 20px 0; max-width: 875px;">
-        <p style="color: gray;">[여기에 AdSense 광고가 표시됩니다]</p>
-        </div>
 
-
-    <div id="high-scores">
-        <h2>🏆 명예의 전당</h2>
-        <ul id="score-list">
-            </ul>
+    <div id="high-scores-container">
+        <h2>🏆 명예의 전당 (Top 10)</h2>
+        <ol id="high-scores-list">
+            <li>점수를 로드 중입니다...</li>
+        </ol>
     </div>
-    
     <script src="game.js"></script>
-
-    <footer style="text-align: center; padding: 20px 0; margin-top: 30px; border-top: 1px solid #ccc; width: 100%; max-width: 925px;">
-        <a href="privacy.html" style="margin: 0 10px; text-decoration: none; color: #333;">개인정보처리방침</a> | 
-        <a href="terms.html" style="margin: 0 10px; text-decoration: none; color: #333;">이용약관</a> | 
-        <a href="about.html" style="margin: 0 10px; text-decoration: none; color: #333;">About & Contact</a>
-        <p style="margin-top: 10px; font-size: 0.8em; color: gray;">&copy; 2025 Cheese Hunter Game</p>
-    </footer>
 </body>
 </html>
