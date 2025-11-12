@@ -6,41 +6,6 @@
     <title>🧀 치즈 헌터</title>
     <link rel="stylesheet" href="style.css">
 
-    <script type="module">
-        // Firebase v9 SDK URL 사용
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics.js";
-        // Firestore 관련 모듈 임포트
-        import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-
-        // Your web app's Firebase configuration (스크린샷 기반)
-        const firebaseConfig = {
-            apiKey: "AIzaSyBO8H0nqatH_bp_zeoSs3e2oEo777mISmg",
-            authDomain: "cheesehunter-f3348.firebaseapp.com",
-            projectId: "cheesehunter-f3348",
-            storageBucket: "cheesehunter-f3348.firebasestorage.app",
-            messagingSenderId: "278725955857",
-            appId: "1:278725955857:web:55b8f4e256b5540d24bcb0",
-            measurementId: "G-96PEZ553QX"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        const db = getFirestore(app); 
-
-        // Firebase 객체를 game.js에서 사용할 수 있도록 window에 노출
-        window.db = db;
-        window.serverTimestamp = serverTimestamp;
-        window.collection = collection;
-        window.addDoc = addDoc;
-        window.query = query;
-        window.orderBy = orderBy;
-        window.limit = limit;
-        window.getDocs = getDocs;
-
-    </script>
-    
     </head>
 <body>
     
@@ -95,6 +60,7 @@
         <ol id="high-scores-list" style="list-style-position: inside; padding: 0;">
             <li>점수를 로드 중입니다...</li>
         </ol>
+        <button id="reset-scores-button" style="margin-top: 10px;">명예의 전당 초기화</button>
     </div>
     
     <script src="game.js"></script>
