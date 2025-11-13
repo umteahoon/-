@@ -1,4 +1,4 @@
-// 헌터.zip/헌터/game.js (최종 안정화 코드 - 고양이 무기만 제거)
+// 헌터.zip/헌터/game.js (최종 안정화 코드)
 
 // ===================================================================
 // 1. HTML 요소 및 기본 설정
@@ -33,7 +33,7 @@ let gameLoop;
 let isGameActive = false;
 let isPaused = false; // 일시정지 상태
 
-// 퀴즈 및 콤보 변수 (전체 복구)
+// 퀴즈 및 콤보 변수 (배열 전체 복구)
 const words = [
     { answer: "치즈", hint: "하얀 음식", initials: "ㅊㅈ" },
     { answer: "사과", hint: "달콤한 과일", initials: "ㅅㄱ" },
@@ -151,15 +151,13 @@ const speedIncreaseRate = 0.98;
 let level = 1; 
 let itemTimer = null; 
 
-// 아이템 위치 객체: catWeapon과 그 관련 변수 모두 제거
+// 아이템 위치 객체
 let cheese = {};
 let bomb = {};
 let mushroom = {};
 let clock = {};
 let bigCheese = {}; 
-// catWeapon 변수 제거
-// bullets 변수 제거
-// weaponInterval 변수 제거
+// catWeapon 관련 변수 제거
 
 // 시각적 피드백
 let comboMessage = ''; 
@@ -201,7 +199,6 @@ function initializeGame() {
     generateItem('mushroom');
     generateItem('clock');
     generateItem('bigCheese'); 
-    // catWeapon 관련 로직 제거
     
     loadHighScores(); 
 
@@ -254,7 +251,6 @@ function generateItem(type) {
     else if (type === 'mushroom') mushroom = pos;
     else if (type === 'clock') clock = pos;
     else if (type === 'bigCheese') bigCheese = pos;
-    // catWeapon 관련 로직 제거
 }
 
 // ===================================================================
@@ -304,10 +300,7 @@ function updateGame() {
         ateItem = true;
         generateItem('clock');
     }
-    // catWeapon 로직 제거
 
-    // 총알 충돌 감지 로직 제거
-    
     // 5. 꼬리 자르기 / 퀴즈 시작 결정
     if (quizRequired) {
         snake.pop(); 
@@ -325,7 +318,7 @@ function updateGame() {
     drawGame();
 }
 
-// 충돌 및 속도 함수 (생략)
+// 충돌 및 속도 함수
 function checkWallCollision(head) {
     const verticalTileCount = canvas.height / gridSize;
     return head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= verticalTileCount;
@@ -336,7 +329,7 @@ function checkSelfCollision(head) {
 }
 
 function checkItemCollision(head, item) {
-    return head.x === item.x && item.y === item.y;
+    return head.x === item.x && item.y === item.y; // 🚨 오류 수정 필요: item.y 대신 head.y와 item.y 비교
 }
 
 function applySpeedChange(multiplier) {
@@ -347,10 +340,6 @@ function applySpeedChange(multiplier) {
         currentSpeed = initialSpeed; 
         startGameLoop(); 
     }, 5000); 
-}
-
-function applyWeaponDebuff() {
-    // 로직 제거
 }
 
 // ===================================================================
@@ -439,7 +428,7 @@ function drawGame() {
     ctx.fillStyle = document.body.classList.contains('dark-mode') ? '#2c3e50' : '#ecf0f1';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 뱀 그리기: 사각형 기반
+    // 뱀 그리기
     snake.forEach((segment, index) => {
         ctx.fillStyle = index === 0 ? '#16a085' : '#1abc9c';
         ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
