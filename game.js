@@ -329,7 +329,7 @@ function checkSelfCollision(head) {
 }
 
 function checkItemCollision(head, item) {
-    return head.x === item.x && item.y === item.y; // 🚨 오류 수정 필요: item.y 대신 head.y와 item.y 비교
+    return head.x === item.x && head.y === item.y; // ⬅️ 수정된 정확한 충돌 감지 로직
 }
 
 function applySpeedChange(multiplier) {
