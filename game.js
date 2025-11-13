@@ -1,4 +1,4 @@
-// 헌터.zip/헌터/game.js (최종 안정화 코드)
+// 헌터.zip/헌터/game.js (최종 안정화 코드 - Enter 재시작 적용)
 
 // ===================================================================
 // 1. HTML 요소 및 기본 설정
@@ -21,19 +21,19 @@ const scoreList = document.getElementById('score-list');
 const resetScoresButton = document.getElementById('reset-scores-button'); 
 
 const gridSize = 35; 
-const tileCount = canvas.width / gridSize; // 700 / 35 = 20
+const tileCount = canvas.width / gridSize; 
  
 // 게임 변수
 let score = 0;
-// 뱀 시작 위치를 원래 캔버스 중앙 근처 (18, 18)로 복구 (700x700 기준)
-let snake = [{ x: 18, y: 18 }, { x: 17, y: 18 }, { x: 16, y: 18 }]; 
+// 뱀 초기 위치 (700x700 기준의 이전 중앙값 대신 임의의 안정적인 초기 위치 설정)
+let snake = [{ x: 12, y: 7 }, { x: 11, y: 7 }, { x: 10, y: 7 }]; 
 let direction = { x: 1, y: 0 }; 
 let nextDirection = { x: 1, y: 0 }; 
 let gameLoop;
 let isGameActive = false;
-let isPaused = false; // 일시정지 상태
+let isPaused = false; 
 
-// 퀴즈 및 콤보 변수 (전체 복구)
+// 퀴즈 및 콤보 변수 (배열 전체 복구)
 const words = [
     { answer: "치즈", hint: "하얀 음식", initials: "ㅊㅈ" },
     { answer: "사과", hint: "달콤한 과일", initials: "ㅅㄱ" },
@@ -157,16 +157,11 @@ let bomb = {};
 let mushroom = {};
 let clock = {};
 let bigCheese = {}; 
-let catWeapon = {}; 
-let bullets = [];
-let weaponInterval = null; 
 
 // 시각적 피드백
 let comboMessage = ''; 
 let comboMessageTimer = null; 
 const comboMessageDuration = 1000; 
-
-let scorePopups = [];
 
 // 명예의 전당 로직
 const MAX_HIGH_SCORES = 10; 
@@ -201,10 +196,6 @@ function initializeGame() {
     generateItem('mushroom');
     generateItem('clock');
     generateItem('bigCheese'); 
-    generateItem('catWeapon'); // catWeapon 복구
-
-    if (weaponInterval) clearInterval(weaponInterval);
-    bullets = [];
     
     loadHighScores(); 
 
@@ -257,7 +248,6 @@ function generateItem(type) {
     else if (type === 'mushroom') mushroom = pos;
     else if (type === 'clock') clock = pos;
     else if (type === 'bigCheese') bigCheese = pos;
-    else if (type === 'catWeapon') catWeapon = pos;
 }
 
 // ===================================================================
@@ -278,49 +268,30 @@ function updateGame() {
     snake.unshift(head);
     let quizRequired = false;
     let ateItem = false;
-    let itemPoints = 0; 
-    let itemPos = { x: head.x, y: head.y };
 
     // 4. 아이템 획득 및 효과
     if (checkItemCollision(head, cheese)) {
         quizRequired = true; 
     } else if (checkItemCollision(head, bigCheese)) {
-        itemPoints = 500;
-        score += itemPoints;
+        score += 500;
         snake.unshift(head); snake.unshift(head); 
         ateItem = true;
         generateItem('bigCheese');
     } 
     else if (checkItemCollision(head, bomb)) {
-        if (snake.length > 4) { snake.splice(snake.length - 3, 3); itemPoints = -3; } 
+        if (snake.length > 4) { snake.splice(snake.length - 3, 3); } 
         else { gameOver(); return; }
         ateItem = true;
         generateItem('bomb');
     } else if (checkItemCollision(head, mushroom)) {
         applySpeedChange(0.5); 
         ateItem = true;
-        itemPoints = "FAST!";
         generateItem('mushroom');
     } else if (checkItemCollision(head, clock)) {
         applySpeedChange(2.0); 
-        itemPoints = "SLOW!";
         ateItem = true;
         generateItem('clock');
     }
-    else if (checkItemCollision(head, catWeapon)) { // catWeapon 충돌 로직 복구
-        if (snake.length > 3) snake.pop(); else { gameOver(); return; }
-        applyWeaponDebuff();
-        ateItem = true;
-        generateItem('catWeapon');
-    }
-
-    // 4-1. 총알(디버프) 충돌 감지
-    bullets.forEach(bullet => {
-        if (checkItemCollision(head, bullet)) {
-             if (snake.length > 2) { snake.pop(); } else { gameOver(); }
-             bullets = bullets.filter(b => b !== bullet); 
-        }
-    });
     
     // 5. 꼬리 자르기 / 퀴즈 시작 결정
     if (quizRequired) {
@@ -332,7 +303,7 @@ function updateGame() {
         snake.pop(); 
     }
     
-    // 치즈/폭탄 재생성 확률 (유지)
+    // 치즈/폭탄 재생성 확률
     if (Object.keys(bomb).length === 0 && Math.random() < 0.3) generateItem('bomb');
     if (Object.keys(cheese).length === 0 && Math.random() < 0.5) generateItem('cheese');
     
@@ -350,7 +321,7 @@ function checkSelfCollision(head) {
 }
 
 function checkItemCollision(head, item) {
-    return head.x === item.x && head.y === item.y; // ⬅️ 수정된 정확한 충돌 감지 로직
+    return head.x === item.x && head.y === item.y; 
 }
 
 function applySpeedChange(multiplier) {
@@ -363,27 +334,10 @@ function applySpeedChange(multiplier) {
     }, 5000); 
 }
 
-function applyWeaponDebuff() {
-    if (weaponInterval) clearInterval(weaponInterval);
-    
-    weaponInterval = setInterval(() => {
-        let bulletPos = getRandomPosition();
-        bullets.push(bulletPos); 
-        setTimeout(() => {
-            bullets = bullets.filter(b => b !== bulletPos);
-        }, 1000); 
-    }, 500); 
-
-    setTimeout(() => {
-        clearInterval(weaponInterval);
-        weaponInterval = null;
-        bullets = []; 
-    }, 5000);
-}
-
 // ===================================================================
 // 4. 퀴즈 및 콤보 시스템
 // ===================================================================
+// ... (퀴즈 및 콤보 로직 유지)
 
 function startQuiz() {
     const quizData = words[Math.floor(Math.random() * words.length)];
@@ -458,9 +412,11 @@ function resetCombo() {
     if (comboTimeout) clearTimeout(comboTimeout);
 }
 
+
 // ===================================================================
 // 5. 그리기 함수 (drawGame)
 // ===================================================================
+// ... (드로잉 로직 유지)
 
 function drawGame() {
     // 캔버스 초기화
@@ -481,14 +437,6 @@ function drawGame() {
     drawItem(mushroom, '#8e44ad', '🍄');
     drawItem(clock, '#3498db', '⏳');
     drawItem(bigCheese, '#ffd700', '🥇');
-    // [복구] catWeapon 아이템 드로잉
-    drawItem(catWeapon, '#e74c3c', '🔫');
-
-    // [복구] 총알 그리기
-    bullets.forEach(bullet => {
-        ctx.fillStyle = '#e74c3c';
-        ctx.fillRect(bullet.x * gridSize + 5, bullet.y * gridSize + 5, gridSize - 10, gridSize - 10);
-    });
 
     // 일시정지 메시지 그리기
     if (isPaused && isGameActive && quizOverlay.classList.contains('hidden')) {
@@ -523,6 +471,7 @@ function drawItem(item, color, symbol) {
     ctx.fillText(symbol, item.x * gridSize + gridSize / 2, item.y * gridSize + gridSize / 2 + 1);
 }
 
+
 // ===================================================================
 // 6. 이벤트 및 게임 종료
 // ===================================================================
@@ -531,7 +480,6 @@ function gameOver() {
     isGameActive = false;
     clearInterval(gameLoop);
     if (itemTimer) clearTimeout(itemTimer);
-    if (weaponInterval) clearInterval(weaponInterval); // [복구]
     
     finalScoreDisplay.textContent = `최종 점수: ${score}점`;
     messageDisplay.classList.remove('hidden'); 
@@ -542,7 +490,7 @@ function gameOver() {
     playerNameInput.focus();
 }
 
-// [로컬 스토리지] 명예의 전당 로드 (생략)
+// [로컬 스토리지] 명예의 전당 로드
 function loadHighScores() {
     if (!scoreList) return; 
     
@@ -613,12 +561,22 @@ document.addEventListener('keydown', (e) => {
     let newDirection = { x: direction.x, y: direction.y };
     let handled = false; 
 
-    // 일시정지 기능 (Spacebar 또는 P)
+    // 1. 게임 오버 후 Enter로 즉시 재시작 (추가된 로직)
+    if (e.key === 'Enter' && !isGameActive) {
+        if (!messageDisplay.classList.contains('hidden')) {
+             initializeGame();
+             e.preventDefault(); 
+             return;
+        }
+    }
+
+    // 2. 일시정지 기능 (Spacebar 또는 P)
     if ((e.key === ' ' || e.key.toLowerCase() === 'p') && isGameActive && quizOverlay.classList.contains('hidden')) {
         togglePause();
         handled = true;
     }
 
+    // 3. 방향키 및 WASD 처리
     if ((e.key === 'ArrowUp' || e.key === 'w') && direction.y === 0) {
         newDirection = { x: 0, y: -1 };
         handled = true;
@@ -632,12 +590,7 @@ document.addEventListener('keydown', (e) => {
         newDirection = { x: 1, y: 0 };
         handled = true;
     } 
-    // Enter 키로 게임 재시작 기능 (점수 등록 UI가 보이지 않을 때만)
-    else if (e.key === 'Enter' && messageDisplay.classList.contains('hidden') === false && playerNameInput.classList.contains('hidden')) {
-        initializeGame();
-        handled = true;
-    }
-    
+
     // 방향키와 WASD 키에 대해 브라우저의 기본 동작(스크롤)을 막습니다.
     if (handled || e.key.startsWith('Arrow')) {
         e.preventDefault(); 
