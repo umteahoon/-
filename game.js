@@ -1,4 +1,4 @@
-// 헌터.zip/헌터/game.js (최종 안정화 코드)
+// 헌터.zip/헌터/game.js (최종 안정화 코드 - 최소 아이템)
 
 // ===================================================================
 // 1. HTML 요소 및 기본 설정
@@ -151,19 +151,17 @@ const speedIncreaseRate = 0.98;
 let level = 1; 
 let itemTimer = null; 
 
-// 아이템 위치 객체
+// 아이템 위치 객체: 치즈, 큰 치즈만 남기고 모두 제거
 let cheese = {};
-let bomb = {};
-let mushroom = {};
-let clock = {};
 let bigCheese = {}; 
+// bomb, mushroom, clock, catWeapon 변수 제거
 
 // 시각적 피드백
 let comboMessage = ''; 
 let comboMessageTimer = null; 
 const comboMessageDuration = 1000; 
 
-// [제거] 점수 팝업 변수 제거
+let scorePopups = [];
 
 // 명예의 전당 로직
 const MAX_HIGH_SCORES = 10; 
@@ -194,9 +192,7 @@ function initializeGame() {
     snake = [{ x: 12, y: 7 }, { x: 11, y: 7 }, { x: 10, y: 7 }];
 
     generateItem('cheese');
-    generateItem('bomb');
-    generateItem('mushroom');
-    generateItem('clock');
+    // [수정] bomb, mushroom, clock, catWeapon 로직 제거
     generateItem('bigCheese'); 
     
     loadHighScores(); 
@@ -239,17 +235,13 @@ function generateItem(type) {
         pos = getRandomPosition();
     } while (isPositionOnSnake(pos));
 
-    if (type === 'bomb') {
-        if (Math.random() < 0.5) { 
-             return; 
-        }
-    }
-
+    // [수정] bomb 생성 확률 제거
     if (type === 'cheese') cheese = pos;
-    else if (type === 'bomb') bomb = pos;
-    else if (type === 'mushroom') mushroom = pos;
-    else if (type === 'clock') clock = pos;
+    // else if (type === 'bomb') bomb = pos; // 제거
+    // else if (type === 'mushroom') mushroom = pos; // 제거
+    // else if (type === 'clock') clock = pos; // 제거
     else if (type === 'bigCheese') bigCheese = pos;
+    // else if (type === 'catWeapon') catWeapon = pos; // 제거
 }
 
 // ===================================================================
@@ -273,7 +265,7 @@ function updateGame() {
     let itemPoints = 0; 
     let itemPos = { x: head.x, y: head.y };
 
-    // 4. 아이템 획득 및 효과
+    // 4. 아이템 획득 및 효과: 치즈, 큰 치즈만 남김
     if (checkItemCollision(head, cheese)) {
         quizRequired = true; 
     } else if (checkItemCollision(head, bigCheese)) {
@@ -283,22 +275,7 @@ function updateGame() {
         ateItem = true;
         generateItem('bigCheese');
     } 
-    else if (checkItemCollision(head, bomb)) {
-        if (snake.length > 4) { snake.splice(snake.length - 3, 3); itemPoints = -3; } 
-        else { gameOver(); return; }
-        ateItem = true;
-        generateItem('bomb');
-    } else if (checkItemCollision(head, mushroom)) {
-        applySpeedChange(0.5); 
-        ateItem = true;
-        itemPoints = "FAST!";
-        generateItem('mushroom');
-    } else if (checkItemCollision(head, clock)) {
-        applySpeedChange(2.0); 
-        itemPoints = "SLOW!";
-        ateItem = true;
-        generateItem('clock');
-    }
+    // bomb, mushroom, clock, catWeapon 충돌 로직 제거
 
     // 5. 꼬리 자르기 / 퀴즈 시작 결정
     if (quizRequired) {
@@ -310,9 +287,9 @@ function updateGame() {
         snake.pop(); 
     }
     
-    // 치즈/폭탄 재생성 확률
-    if (Object.keys(bomb).length === 0 && Math.random() < 0.3) generateItem('bomb');
-    if (Object.keys(cheese).length === 0 && Math.random() < 0.5) generateItem('cheese');
+    // [수정] 치즈/폭탄 재생성 확률 제거 (획득 시에만 생성되도록 안정화)
+    // if (Object.keys(bomb).length === 0 && Math.random() < 0.3) generateItem('bomb'); // 제거
+    if (Object.keys(cheese).length === 0 && Math.random() < 0.5) generateItem('cheese'); // 획득 후에도 낮은 확률로 즉시 재생성되는 로직 제거
     
     drawGame();
 }
@@ -340,6 +317,8 @@ function applySpeedChange(multiplier) {
         startGameLoop(); 
     }, 5000); 
 }
+
+// applyWeaponDebuff 함수 제거
 
 // ===================================================================
 // 4. 퀴즈 및 콤보 시스템
@@ -435,11 +414,8 @@ function drawGame() {
         ctx.strokeRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
     });
 
-    // 아이템 그리기
+    // 아이템 그리기: 치즈, 큰 치즈만 그립니다.
     drawItem(cheese, '#f1c40f', '🧀');
-    drawItem(bomb, '#c0392b', '💣');
-    drawItem(mushroom, '#8e44ad', '🍄');
-    drawItem(clock, '#3498db', '⏳');
     drawItem(bigCheese, '#ffd700', '🥇');
 
     // 일시정지 메시지 그리기
@@ -484,7 +460,7 @@ function gameOver() {
     clearInterval(gameLoop);
     if (itemTimer) clearTimeout(itemTimer);
     
-    finalScoreDisplay.textContent = `최종 점수: ${score}점`; // [수정] 한글 단위 표기
+    finalScoreDisplay.textContent = `최종 점수: ${score}점`;
     messageDisplay.classList.remove('hidden'); 
     
     playerNameInput.classList.remove('hidden');
