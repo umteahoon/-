@@ -33,7 +33,7 @@ let gameLoop;
 let isGameActive = false;
 let isPaused = false; // 일시정지 상태
 
-// 퀴즈 및 콤보 변수 (전체 복구)
+// 퀴즈 및 콤보 변수 (배열 전체 복구)
 const words = [
     { answer: "치즈", hint: "하얀 음식", initials: "ㅊㅈ" },
     { answer: "사과", hint: "달콤한 과일", initials: "ㅅㄱ" },
@@ -157,14 +157,13 @@ let bomb = {};
 let mushroom = {};
 let clock = {};
 let bigCheese = {}; 
-// catWeapon 관련 변수 제거
 
 // 시각적 피드백
 let comboMessage = ''; 
 let comboMessageTimer = null; 
 const comboMessageDuration = 1000; 
 
-let scorePopups = [];
+// [제거] 점수 팝업 변수 제거
 
 // 명예의 전당 로직
 const MAX_HIGH_SCORES = 10; 
@@ -428,7 +427,7 @@ function drawGame() {
     ctx.fillStyle = document.body.classList.contains('dark-mode') ? '#2c3e50' : '#ecf0f1';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 뱀 그리기
+    // 뱀 그리기: 사각형 기반
     snake.forEach((segment, index) => {
         ctx.fillStyle = index === 0 ? '#16a085' : '#1abc9c';
         ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
@@ -485,7 +484,7 @@ function gameOver() {
     clearInterval(gameLoop);
     if (itemTimer) clearTimeout(itemTimer);
     
-    finalScoreDisplay.textContent = `최종 점수: ${score}점`;
+    finalScoreDisplay.textContent = `최종 점수: ${score}점`; // [수정] 한글 단위 표기
     messageDisplay.classList.remove('hidden'); 
     
     playerNameInput.classList.remove('hidden');
