@@ -11,10 +11,6 @@ const quizQuestionElement = document.getElementById('quiz-question');
 const quizInput = document.getElementById('quiz-input');
 const quizSubmitButton = document.getElementById('quiz-submit-button');
 const darkModeToggle = document.getElementById('dark-mode-toggle');
-// [추가] 명예의 전당 관련 요소
-const playerNameInput = document.getElementById('player-name-input');
-const saveScoreButton = document.getElementById('save-score-button');
-const scoreList = document.getElementById('score-list');
 
 const gridSize = 35; 
 // 캔버스 너비 875 / 35 = 25 (가로 타일 수)
@@ -29,7 +25,7 @@ let nextDirection = { x: 1, y: 0 };
 let gameLoop;
 let isGameActive = false;
 
-
+// 퀴즈 및 콤보 변수
 const words = [
     { answer: "치즈", hint: "하얀 음식", initials: "ㅊㅈ" },
     { answer: "사과", hint: "달콤한 과일", initials: "ㅅㄱ" },
@@ -162,11 +158,6 @@ let comboMessage = '';
 let comboMessageTimer = null; 
 const comboMessageDuration = 1000; 
 
-let scorePopups = [];
-
-// 명예의 전당 로직
-const MAX_HIGH_SCORES = 10; 
-
 // ===================================================================
 // 2. 초기화 및 유틸리티 함수
 // ===================================================================
@@ -182,14 +173,9 @@ function initializeGame() {
     
     messageDisplay.classList.add('hidden');
     quizOverlay.classList.add('hidden');
-    
-    // 명예의 전당 UI 초기화 및 숨김 설정
-    playerNameInput.classList.add('hidden');
-    saveScoreButton.classList.add('hidden');
-    
     scoreDisplay.textContent = score;
 
-    // 뱀 초기 위치 (Y=7)
+    // 뱀 시작 위치를 새로운 캔버스 중앙 근처 (12, 7)로 조정 (25x15 타일)
     snake = [{ x: 12, y: 7 }, { x: 11, y: 7 }, { x: 10, y: 7 }];
 
     generateItem('cheese');
@@ -197,8 +183,10 @@ function initializeGame() {
     generateItem('mushroom');
     generateItem('clock');
     generateItem('bigCheese'); 
-    
-    loadHighScores(); 
+    generateItem('catWeapon');
+
+    if (weaponInterval) clearInterval(weaponInterval);
+    bullets = [];
 
     startGameLoop(); 
 }
@@ -208,22 +196,10 @@ function startGameLoop() {
     gameLoop = setInterval(updateGame, currentSpeed); 
 }
 
-function togglePause() {
-    if (!isGameActive) return; 
-    
-    isPaused = !isPaused;
-    
-    if (isPaused) {
-        clearInterval(gameLoop);
-        drawGame(); 
-    } else {
-        startGameLoop();
-    }
-}
-
 function getRandomPosition() {
     return {
         x: Math.floor(Math.random() * tileCount),
+        // 세로 타일 개수를 캔버스 높이를 이용해 계산합니다.
         y: Math.floor(Math.random() * (canvas.height / gridSize)) 
     };
 }
@@ -238,17 +214,12 @@ function generateItem(type) {
         pos = getRandomPosition();
     } while (isPositionOnSnake(pos));
 
-    if (type === 'bomb') {
-        if (Math.random() < 0.5) { 
-             return; 
-        }
-    }
-
     if (type === 'cheese') cheese = pos;
     else if (type === 'bomb') bomb = pos;
     else if (type === 'mushroom') mushroom = pos;
     else if (type === 'clock') clock = pos;
     else if (type === 'bigCheese') bigCheese = pos;
+    else if (type === 'catWeapon') catWeapon = pos;
 }
 
 // ===================================================================
@@ -256,7 +227,7 @@ function generateItem(type) {
 // ===================================================================
 
 function updateGame() {
-    if (!isGameActive || isPaused) return; 
+    if (!isGameActive) return;
 
     direction = nextDirection;
     const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
@@ -269,55 +240,58 @@ function updateGame() {
     snake.unshift(head);
     let quizRequired = false;
     let ateItem = false;
-    let itemPoints = 0; 
-    let itemPos = { x: head.x, y: head.y };
 
     // 4. 아이템 획득 및 효과
     if (checkItemCollision(head, cheese)) {
         quizRequired = true; 
     } else if (checkItemCollision(head, bigCheese)) {
-        itemPoints = 500;
-        score += itemPoints;
+        score += 500;
         snake.unshift(head); snake.unshift(head); 
         ateItem = true;
         generateItem('bigCheese');
-    } 
-    else if (checkItemCollision(head, bomb)) {
-        if (snake.length > 4) { snake.splice(snake.length - 3, 3); itemPoints = -3; } 
+    } else if (checkItemCollision(head, catWeapon)) {
+        if (snake.length > 3) snake.pop(); else { gameOver(); return; }
+        applyWeaponDebuff();
+        ateItem = true;
+        generateItem('catWeapon');
+    } else if (checkItemCollision(head, bomb)) {
+        if (snake.length > 4) { snake.splice(snake.length - 3, 3); } 
         else { gameOver(); return; }
         ateItem = true;
         generateItem('bomb');
     } else if (checkItemCollision(head, mushroom)) {
         applySpeedChange(0.5); 
         ateItem = true;
-        itemPoints = "FAST!";
         generateItem('mushroom');
     } else if (checkItemCollision(head, clock)) {
         applySpeedChange(2.0); 
-        itemPoints = "SLOW!";
         ateItem = true;
         generateItem('clock');
     }
+
+    // 4-1. 총알(디버프) 충돌 감지
+    bullets.forEach(bullet => {
+        if (checkItemCollision(head, bullet)) {
+             if (snake.length > 2) { snake.pop(); } else { gameOver(); }
+             bullets = bullets.filter(b => b !== bullet); 
+        }
+    });
 
     // 5. 꼬리 자르기 / 퀴즈 시작 결정
     if (quizRequired) {
         snake.pop(); 
         isGameActive = false;
-        isPaused = true; 
         startQuiz();
     } else if (!ateItem) {
         snake.pop(); 
     }
     
-    // 치즈/폭탄 재생성 확률
-    if (Object.keys(bomb).length === 0 && Math.random() < 0.3) generateItem('bomb');
-    if (Object.keys(cheese).length === 0 && Math.random() < 0.5) generateItem('cheese');
-    
     drawGame();
 }
 
-// 충돌 및 속도 함수 (생략)
+// 충돌 및 속도 함수
 function checkWallCollision(head) {
+    // 세로 충돌 검사 시 캔버스 높이를 이용합니다.
     const verticalTileCount = canvas.height / gridSize;
     return head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= verticalTileCount;
 }
@@ -327,7 +301,7 @@ function checkSelfCollision(head) {
 }
 
 function checkItemCollision(head, item) {
-    return head.x === item.x && item.y === item.y;
+    return head.x === item.x && head.y === item.y;
 }
 
 function applySpeedChange(multiplier) {
@@ -338,6 +312,24 @@ function applySpeedChange(multiplier) {
         currentSpeed = initialSpeed; 
         startGameLoop(); 
     }, 5000); 
+}
+
+function applyWeaponDebuff() {
+    if (weaponInterval) clearInterval(weaponInterval);
+    
+    weaponInterval = setInterval(() => {
+        let bulletPos = getRandomPosition();
+        bullets.push(bulletPos); 
+        setTimeout(() => {
+            bullets = bullets.filter(b => b !== bulletPos);
+        }, 1000); 
+    }, 500); 
+
+    setTimeout(() => {
+        clearInterval(weaponInterval);
+        weaponInterval = null;
+        bullets = []; 
+    }, 5000);
 }
 
 // ===================================================================
@@ -353,6 +345,7 @@ function startQuiz() {
     quizInput.value = '';
     quizOverlay.classList.remove('hidden');
     
+    // 타자 입력 포커스 확보
     setTimeout(() => {
         quizInput.focus();
     }, 10); 
@@ -372,42 +365,47 @@ function handleQuizResult(isCorrect) {
     quizOverlay.classList.add('hidden');
     isGameActive = true;
     
-    isPaused = false; 
-    
     if (comboTimeout) clearTimeout(comboTimeout);
     if (comboMessageTimer) clearTimeout(comboMessageTimer);
     comboTimeout = setTimeout(resetCombo, maxComboTime); 
 
     if (isCorrect) {
+        // 콤보 및 점수 계산
         comboCount++; 
         comboMultiplier = 1 + Math.floor(comboCount / 3) * 0.5; 
         let points = 100 * comboMultiplier;
         score += points; 
         
+        // 난이도 상승
         level++;
         const newSpeed = initialSpeed * Math.pow(speedIncreaseRate, level); 
         currentSpeed = Math.max(newSpeed, 50); 
 
+        // 콤보 메시지 설정
         if (comboCount > 1) {
             comboMessage = `${comboCount} 콤보! (X ${comboMultiplier.toFixed(1)})`;
         } else {
             comboMessage = ''; 
         }
         
+        // 뱀 꼬리 증가
         snake.unshift({ x: snake[0].x, y: snake[0].y }); 
         
     } else {
+        // 오답 시 콤보 초기화 및 피드백
         resetCombo();
         comboMessage = 'COMBO BREAK!';
         if (snake.length > 3) { snake.pop(); }
     }
     
+    // 메시지 타이머 설정
     comboMessageTimer = setTimeout(() => {
         comboMessage = '';
         drawGame();
     }, comboMessageDuration);
     
     generateItem('cheese');
+    drawGame();
     startGameLoop(); 
 }
 
@@ -426,27 +424,37 @@ function drawGame() {
     ctx.fillStyle = document.body.classList.contains('dark-mode') ? '#2c3e50' : '#ecf0f1';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 뱀 그리기: 사각형 기반
+    // 뱀 그리기
     snake.forEach((segment, index) => {
         ctx.fillStyle = index === 0 ? '#16a085' : '#1abc9c';
         ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
         ctx.strokeStyle = '#2c3e50';
         ctx.strokeRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
     });
-
-    // 아이템 그리기
+    
+    // 아이템 그리기 (각 심볼로 대체)
     drawItem(cheese, '#f1c40f', '🧀');
     drawItem(bomb, '#c0392b', '💣');
     drawItem(mushroom, '#8e44ad', '🍄');
     drawItem(clock, '#3498db', '⏳');
     drawItem(bigCheese, '#ffd700', '🥇');
+    drawItem(catWeapon, '#e74c3c', '🔫');
 
-    // 일시정지 메시지 그리기
-    if (isPaused && isGameActive && quizOverlay.classList.contains('hidden')) {
+    // 총알 그리기
+    bullets.forEach(bullet => {
+        ctx.fillStyle = '#e74c3c';
+        ctx.fillRect(bullet.x * gridSize + 5, bullet.y * gridSize + 5, gridSize - 10, gridSize - 10);
+    });
+
+    // 콤보 메시지 그리기
+    if (comboMessage) {
         ctx.textAlign = 'center';
-        ctx.font = 'bold 40px Arial';
-        ctx.fillStyle = document.body.classList.contains('dark-mode') ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)';
-        ctx.fillText("PAUSED", canvas.width / 2, canvas.height / 2);
+        ctx.font = 'bold 30px Arial';
+        ctx.shadowColor = 'black';
+        ctx.shadowBlur = 5;
+        ctx.fillStyle = comboMessage.includes('BREAK') ? '#e74c3c' : '#f1c40f';
+        ctx.fillText(comboMessage, canvas.width / 2, 50);
+        ctx.shadowBlur = 0;
     }
     
     // 레벨/배율 정보 그리기
@@ -482,102 +490,16 @@ function gameOver() {
     isGameActive = false;
     clearInterval(gameLoop);
     if (itemTimer) clearTimeout(itemTimer);
+    if (weaponInterval) clearInterval(weaponInterval);
     
-    finalScoreDisplay.textContent = `최종 점수: ${score}점`;
+    finalScoreDisplay.textContent = score;
     messageDisplay.classList.remove('hidden'); 
-    
-    playerNameInput.classList.remove('hidden');
-    saveScoreButton.classList.remove('hidden');
-    
-    playerNameInput.focus();
 }
 
-// [로컬 스토리지] 명예의 전당 로드
-function loadHighScores() {
-    if (!scoreList) return; 
-    
-    const scores = JSON.parse(localStorage.getItem('highScores')) || [];
-    scores.sort((a, b) => b.score - a.score);
-    
-    scoreList.innerHTML = scores.slice(0, MAX_HIGH_SCORES).map((item, index) => {
-        const displayScore = item.score !== undefined ? item.score : 0;
-        const displayName = item.name || "UNNAMED";
-        return `<li>${index + 1}. ${displayName} - ${displayScore}점</li>`;
-    }).join('');
-
-    if (scores.length === 0) {
-        scoreList.innerHTML = `<li>[로컬 데이터] 등록된 점수가 없습니다.</li>`;
-    }
-}
-
-// [Google Forms] 명예의 전당 점수를 저장 (Forms 제출 로직)
-function saveHighScore() {
-    if (saveScoreButton.disabled) return;
-    
-    let name = playerNameInput.value.trim().toUpperCase();
-    name = name.substring(0, 3);
-    name = name.replace(/[^A-Z0-9ㄱ-ㅎ가-힣]/g, ''); 
-    
-    if (name.length === 0) {
-        name = "GUEST";
-    }
-
-    const finalScore = score;
-    
-    // ⚠️ Forms 제출 URL 및 ID를 사용하여 URL 구성 (Forms 제출 엔드포인트 URL 및 ID로 변경 필요)
-    const GOOGLE_FORM_SUBMIT_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdroV4zvGoDH9sXv3b8B2YOMQSOLZe_vROYXNV5KTeTDZ2R8A/formResponse";
-    const FORM_ENTRY_NAME_ID = "entry.1314839975";
-    const FORM_ENTRY_SCORE_ID = "entry.42631463";
-    
-    // 이 URL은 Forms의 "미리보기"에서 추출한 실제 필드 ID로 변경해야 합니다!
-    const submitUrl = `${GOOGLE_FORM_SUBMIT_URL}?${FORM_ENTRY_NAME_ID}=${encodeURIComponent(name)}&${FORM_ENTRY_SCORE_ID}=${finalScore}&submit=Submit`;
-
-    saveScoreButton.disabled = true;
-    saveScoreButton.textContent = '등록 중...';
-
-    // Google Forms로 데이터 전송
-    fetch(submitUrl, { method: 'POST', mode: 'no-cors' })
-        .then(() => {
-            alert(`${name}님의 ${finalScore}점이 Google Sheets에 등록되었습니다! 잠시 후 점수판을 확인하세요.`);
-        })
-        .catch(error => {
-            console.error("점수 제출 오류:", error);
-            alert("점수 제출 실패! (콘솔 확인)");
-        })
-        .finally(() => {
-            // UI 정리
-            playerNameInput.classList.add('hidden');
-            saveScoreButton.classList.add('hidden');
-        });
-}
-
-// 명예의 전당 초기화 기능
-function resetHighScores() {
-    if (confirm("정말 명예의 전당 점수를 모두 초기화하시겠습니까? (로컬 저장소만 초기화됩니다)")) {
-        localStorage.removeItem('highScores');
-        loadHighScores();
-        alert("점수가 초기화되었습니다!");
-    }
-}
-if (resetScoresButton) {
-    resetScoresButton.addEventListener('click', resetHighScores);
-}
-
-
-// [추가] 점수 등록 버튼 이벤트 리스너
-saveScoreButton.addEventListener('click', saveHighScore);
-
-
-// 키보드 입력 처리 (방향키, Enter, 일시정지 포함)
+// 키보드 입력 처리 (방향키 및 Enter 재시작 기능 추가, 스크롤 방지 로직 추가)
 document.addEventListener('keydown', (e) => {
     let newDirection = { x: direction.x, y: direction.y };
-    let handled = false; 
-
-    // 일시정지 기능 (Spacebar 또는 P)
-    if ((e.key === ' ' || e.key.toLowerCase() === 'p') && isGameActive && quizOverlay.classList.contains('hidden')) {
-        togglePause();
-        handled = true;
-    }
+    let handled = false; // 기본 동작을 막았는지 확인하는 플래그
 
     if ((e.key === 'ArrowUp' || e.key === 'w') && direction.y === 0) {
         newDirection = { x: 0, y: -1 };
@@ -592,9 +514,9 @@ document.addEventListener('keydown', (e) => {
         newDirection = { x: 1, y: 0 };
         handled = true;
     } 
-    // Enter 키로 게임 재시작 기능 (점수 등록 UI가 보이지 않을 때만)
-    else if (e.key === 'Enter' && messageDisplay.classList.contains('hidden') === false && playerNameInput.classList.contains('hidden')) {
-        initializeGame();
+    // Enter 키로 게임 재시작 기능
+    else if (e.key === 'Enter' && messageDisplay.classList.contains('hidden') === false) {
+        window.location.reload();
         handled = true;
     }
     
@@ -603,13 +525,10 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault(); 
     }
 
-    // 일시정지 상태가 아닐 때만 방향 변경 적용
-    if (!isPaused) {
-        nextDirection = newDirection;
-    }
+    nextDirection = newDirection;
 });
 
-// 퀴즈 제출 이벤트 리스너 (Enter 시 제출)
+// 퀴즈 제출 이벤트 리스너
 quizSubmitButton.addEventListener('click', () => {
     if (quizInput.value.toLowerCase() === currentQuizWord.toLowerCase()) {
         handleQuizResult(true);
@@ -620,13 +539,8 @@ quizSubmitButton.addEventListener('click', () => {
 
 quizInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
+        // 퀴즈 입력 중 엔터는 퀴즈 제출로 작동
         quizSubmitButton.click();
-    }
-});
-
-playerNameInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        saveScoreButton.click();
     }
 });
 
