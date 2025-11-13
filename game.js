@@ -1,16 +1,4 @@
-// 헌터.zip/헌터/game.js
-
-// ===================================================================
-// 0. Google Forms 제출 상수 (⚠️ 이 값을 반드시 Forms에서 추출한 값으로 대체하세요!)
-// ===================================================================
-// 1. Google Forms의 "미리보기"에서 추출한 제출 URL (FormResponse로 끝남)
-//    Forms ID를 기반으로 추정한 URL을 사용합니다. 실제 URL로 변경해야 합니다.
-const GOOGLE_FORM_SUBMIT_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdroV4zvGoDH9sXv3b8B2YOMQSOLZe_vROYXNV5KTeTDZ2R8A/formResponse"; 
-// 2. Forms 제출 시 '플레이어 이름'의 실제 필드 ID (Forms 소스 코드 분석 결과)
-const FORM_ENTRY_NAME_ID = "entry.1314839975"; 
-// 3. Forms 제출 시 '최종 점수'의 실제 필드 ID (Forms 소스 코드 분석 결과)
-const FORM_ENTRY_SCORE_ID = "entry.42631463";
-
+// 헌터.zip/헌터/game.js (최종 안정화 코드)
 
 // ===================================================================
 // 1. HTML 요소 및 기본 설정
@@ -37,12 +25,13 @@ const tileCount = canvas.width / gridSize;
  
 // 게임 변수
 let score = 0;
+// 뱀 초기 위치를 유효 범위 내 (Y=7)로 수정
 let snake = [{ x: 12, y: 7 }, { x: 11, y: 7 }, { x: 10, y: 7 }]; 
 let direction = { x: 1, y: 0 }; 
 let nextDirection = { x: 1, y: 0 }; 
 let gameLoop;
 let isGameActive = false;
-let isPaused = false; 
+let isPaused = false; // 일시정지 상태
 
 // 퀴즈 및 콤보 변수 (생략)
 const words = [
@@ -69,16 +58,14 @@ let bomb = {};
 let mushroom = {};
 let clock = {};
 let bigCheese = {}; 
-let catWeapon = {}; 
-let bullets = [];
-let weaponInterval = null; 
+// catWeapon 관련 변수 제거
 
 // 시각적 피드백
 let comboMessage = ''; 
 let comboMessageTimer = null; 
 const comboMessageDuration = 1000; 
 
-let scorePopups = [];
+let scorePopups = []; // 팝업 로직은 제거되었으나 변수는 유지됨
 
 // 명예의 전당 로직
 const MAX_HIGH_SCORES = 10; 
@@ -114,7 +101,7 @@ function initializeGame() {
     generateItem('clock');
     generateItem('bigCheese'); 
     
-    // catWeapon 관련 로직 제거됨
+    // catWeapon 관련 로직 제거
 
     loadHighScores(); 
 
@@ -217,24 +204,6 @@ function updateGame() {
         generateItem('clock');
     }
 
-    // [추가] 점수 팝업 생성 로직 (유지)
-    if (itemPoints !== 0) {
-        let text = itemPoints;
-        let color = '#fff';
-        if (itemPoints === 500) color = '#ffd700'; 
-        if (itemPoints === -3) text = "꼬리 -3"; 
-        
-        scorePopups.push({
-            x: itemPos.x * gridSize + gridSize / 2,
-            y: itemPos.y * gridSize + gridSize / 2,
-            text: text.toString(),
-            color: color,
-            alpha: 1.0,
-            timer: 0
-        });
-    }
-
-
     // 5. 꼬리 자르기 / 퀴즈 시작 결정
     if (quizRequired) {
         snake.pop(); 
@@ -276,10 +245,8 @@ function applySpeedChange(multiplier) {
     }, 5000); 
 }
 
-// applyWeaponDebuff 함수 제거
-
 // ===================================================================
-// 4. 퀴즈 및 콤보 시스템
+// 4. 퀴즈 및 콤보 시스템 (생략)
 // ===================================================================
 
 function startQuiz() {
@@ -316,9 +283,6 @@ function handleQuizResult(isCorrect) {
     if (comboMessageTimer) clearTimeout(comboMessageTimer);
     comboTimeout = setTimeout(resetCombo, maxComboTime); 
 
-    let popUpText = "오답!";
-    let popUpColor = '#e74c3c';
-
     if (isCorrect) {
         comboCount++; 
         comboMultiplier = 1 + Math.floor(comboCount / 3) * 0.5; 
@@ -331,31 +295,17 @@ function handleQuizResult(isCorrect) {
 
         if (comboCount > 1) {
             comboMessage = `${comboCount} 콤보! (X ${comboMultiplier.toFixed(1)})`;
-            popUpColor = '#2ecc71';
         } else {
             comboMessage = ''; 
-            popUpColor = '#2ecc71';
         }
         
         snake.unshift({ x: snake[0].x, y: snake[0].y }); 
         
-        popUpText = `+${points.toFixed(0)}`;
-
     } else {
         resetCombo();
         comboMessage = 'COMBO BREAK!';
         if (snake.length > 3) { snake.pop(); }
     }
-    
-    // 퀴즈 결과 팝업 생성
-    scorePopups.push({
-        x: snake[0].x * gridSize + gridSize / 2,
-        y: snake[0].y * gridSize + gridSize / 2,
-        text: popUpText,
-        color: popUpColor,
-        alpha: 1.0,
-        timer: 0
-    });
     
     comboMessageTimer = setTimeout(() => {
         comboMessage = '';
@@ -398,23 +348,6 @@ function drawGame() {
 
     // 콤보 메시지 그리기 (제거됨)
     
-    // [추가] 점수 팝업 그리기 및 업데이트
-    scorePopups = scorePopups.filter(popup => popup.alpha > 0);
-    scorePopups.forEach(popup => {
-        ctx.globalAlpha = popup.alpha;
-        ctx.textAlign = 'center';
-        ctx.font = 'bold 20px Arial';
-        ctx.fillStyle = popup.color;
-        
-        ctx.fillText(popup.text, popup.x, popup.y);
-
-        // 팝업 이동 및 투명도 감소
-        popup.y -= 1; 
-        popup.alpha -= 0.03; 
-        popup.timer++;
-    });
-    ctx.globalAlpha = 1.0; 
-
     // 일시정지 메시지 그리기
     if (isPaused && isGameActive && quizOverlay.classList.contains('hidden')) {
         ctx.textAlign = 'center';
@@ -484,7 +417,7 @@ function loadHighScores() {
     }
 }
 
-// [Google Forms] 명예의 전당 점수를 저장
+// [Google Forms] 명예의 전당 점수를 저장 (Forms 제출 로직)
 function saveHighScore() {
     if (saveScoreButton.disabled) return;
     
@@ -499,6 +432,11 @@ function saveHighScore() {
     const finalScore = score;
     
     // ⚠️ Forms 제출 URL 및 ID를 사용하여 URL 구성 (Forms 제출 엔드포인트 URL 및 ID로 변경 필요)
+    const GOOGLE_FORM_SUBMIT_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdroV4zvGoDH9sXv3b8B2YOMQSOLZe_vROYXNV5KTeTDZ2R8A/formResponse";
+    const FORM_ENTRY_NAME_ID = "entry.1314839975";
+    const FORM_ENTRY_SCORE_ID = "entry.42631463";
+    
+    // 이 URL은 Forms의 "미리보기"에서 추출한 실제 필드 ID로 변경해야 합니다!
     const submitUrl = `${GOOGLE_FORM_SUBMIT_URL}?${FORM_ENTRY_NAME_ID}=${encodeURIComponent(name)}&${FORM_ENTRY_SCORE_ID}=${finalScore}&submit=Submit`;
 
     saveScoreButton.disabled = true;
