@@ -1,4 +1,4 @@
-// 헌터.zip/헌터/game.js (최종 안정화 코드 - 고양이 무기 제거)
+// 헌터.zip/헌터/game.js (최종 안정화 코드 - 고양이 무기만 제거)
 
 // ===================================================================
 // 1. HTML 요소 및 기본 설정
@@ -33,7 +33,7 @@ let gameLoop;
 let isGameActive = false;
 let isPaused = false; // 일시정지 상태
 
-// 퀴즈 및 콤보 변수 (배열 전체 복구)
+// 퀴즈 및 콤보 변수 (전체 복구)
 const words = [
     { answer: "치즈", hint: "하얀 음식", initials: "ㅊㅈ" },
     { answer: "사과", hint: "달콤한 과일", initials: "ㅅㄱ" },
@@ -151,10 +151,15 @@ const speedIncreaseRate = 0.98;
 let level = 1; 
 let itemTimer = null; 
 
-// 아이템 위치 객체: 치즈, 큰 치즈만 남김
+// 아이템 위치 객체: catWeapon과 그 관련 변수 모두 제거
 let cheese = {};
+let bomb = {};
+let mushroom = {};
+let clock = {};
 let bigCheese = {}; 
-// bomb, mushroom, clock, catWeapon 변수 제거
+// catWeapon 변수 제거
+// bullets 변수 제거
+// weaponInterval 변수 제거
 
 // 시각적 피드백
 let comboMessage = ''; 
@@ -192,8 +197,11 @@ function initializeGame() {
     snake = [{ x: 12, y: 7 }, { x: 11, y: 7 }, { x: 10, y: 7 }];
 
     generateItem('cheese');
+    generateItem('bomb');
+    generateItem('mushroom');
+    generateItem('clock');
     generateItem('bigCheese'); 
-    // bomb, mushroom, clock, catWeapon 생성 제거
+    // catWeapon 관련 로직 제거
     
     loadHighScores(); 
 
@@ -235,9 +243,18 @@ function generateItem(type) {
         pos = getRandomPosition();
     } while (isPositionOnSnake(pos));
 
-    // bomb 생성 확률 제거
+    if (type === 'bomb') {
+        if (Math.random() < 0.5) { 
+             return; 
+        }
+    }
+
     if (type === 'cheese') cheese = pos;
+    else if (type === 'bomb') bomb = pos;
+    else if (type === 'mushroom') mushroom = pos;
+    else if (type === 'clock') clock = pos;
     else if (type === 'bigCheese') bigCheese = pos;
+    // catWeapon 관련 로직 제거
 }
 
 // ===================================================================
@@ -261,7 +278,7 @@ function updateGame() {
     let itemPoints = 0; 
     let itemPos = { x: head.x, y: head.y };
 
-    // 4. 아이템 획득 및 효과: 치즈, 큰 치즈만 남김
+    // 4. 아이템 획득 및 효과
     if (checkItemCollision(head, cheese)) {
         quizRequired = true; 
     } else if (checkItemCollision(head, bigCheese)) {
@@ -271,7 +288,26 @@ function updateGame() {
         ateItem = true;
         generateItem('bigCheese');
     } 
+    else if (checkItemCollision(head, bomb)) {
+        if (snake.length > 4) { snake.splice(snake.length - 3, 3); itemPoints = -3; } 
+        else { gameOver(); return; }
+        ateItem = true;
+        generateItem('bomb');
+    } else if (checkItemCollision(head, mushroom)) {
+        applySpeedChange(0.5); 
+        ateItem = true;
+        itemPoints = "FAST!";
+        generateItem('mushroom');
+    } else if (checkItemCollision(head, clock)) {
+        applySpeedChange(2.0); 
+        itemPoints = "SLOW!";
+        ateItem = true;
+        generateItem('clock');
+    }
+    // catWeapon 로직 제거
 
+    // 총알 충돌 감지 로직 제거
+    
     // 5. 꼬리 자르기 / 퀴즈 시작 결정
     if (quizRequired) {
         snake.pop(); 
@@ -282,8 +318,9 @@ function updateGame() {
         snake.pop(); 
     }
     
-    // 치즈 재생성 로직 (아이템 불안정 방지를 위해 제거)
-    // if (Object.keys(cheese).length === 0 && Math.random() < 0.5) generateItem('cheese'); 
+    // 치즈/폭탄 재생성 확률
+    if (Object.keys(bomb).length === 0 && Math.random() < 0.3) generateItem('bomb');
+    if (Object.keys(cheese).length === 0 && Math.random() < 0.5) generateItem('cheese');
     
     drawGame();
 }
@@ -310,6 +347,10 @@ function applySpeedChange(multiplier) {
         currentSpeed = initialSpeed; 
         startGameLoop(); 
     }, 5000); 
+}
+
+function applyWeaponDebuff() {
+    // 로직 제거
 }
 
 // ===================================================================
@@ -406,8 +447,11 @@ function drawGame() {
         ctx.strokeRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
     });
 
-    // 아이템 그리기: 치즈, 큰 치즈만 그립니다.
+    // 아이템 그리기
     drawItem(cheese, '#f1c40f', '🧀');
+    drawItem(bomb, '#c0392b', '💣');
+    drawItem(mushroom, '#8e44ad', '🍄');
+    drawItem(clock, '#3498db', '⏳');
     drawItem(bigCheese, '#ffd700', '🥇');
 
     // 일시정지 메시지 그리기
