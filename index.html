@@ -22,7 +22,6 @@
             <li>**💣 폭탄:** 닿으면 퀴즈 없이 즉시 **꼬리 3칸 감소** (주의!).</li>
             <li>**🍄 버섯:** 5초간 이동 속도가 2배로 **빨라집니다**.</li>
             <li>**⏳ 시계:** 5초간 이동 속도가 1/2배로 **느려집니다**.</li>
-            <li>**🔫 고양이 무기:** 닿으면 꼬리가 감소하며, **고양이의 원거리 총알 공격**이 5초간 활성화됩니다.</li>
         </ul>
     </div>
 
@@ -46,7 +45,8 @@
             <p id="final-score">최종 점수: 0점</p>
             <input type="text" id="player-name-input" placeholder="이름 입력 (3자 이하)" maxlength="3" class="hidden">
             <button id="save-score-button" class="hidden">점수 등록</button>
-            <button id="share-score-button" class="hidden">점수 공유하기 🚀</button> <button onclick="initializeGame()">다시 시작</button>
+            <button id="share-score-button" class="hidden">점수 공유하기 🚀</button> 
+            <button onclick="initializeGame()">다시 시작</button>
         </div>
     </div>
     
@@ -57,9 +57,14 @@
     <div id="high-scores-container" style="max-width: 925px; margin: 20px auto; text-align: center;">
         <h2>🏆 실시간 명예의 전당 (Google Sheets)</h2>
         
-        <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRCw2D7ZWQszcbWIhYMJWAKk1xr_EMOZlZyRnFESotyk9SiMEUB265zEwea5vH56Ff03tOQW6FbIGcV/pubhtml?widget=true&amp;headers=false"></iframe>
-        
-        </div>
+        <iframe 
+            src="https://docs.google.com/spreadsheets/d/e/2PACX-1vRCw2D7ZWQszcbWIhYMJWAKk1xr_EMOZlZyRnFESotyk9SiMEUB265zEwea5vH56Ff03tOQW6FbIGcV/pubhtml?widget=true&amp;headers=false" 
+            width="875" 
+            height="400" 
+            frameborder="0"
+            style="border: 3px solid #f1c40f;">
+        </iframe>
+    </div>
     
     <script src="game.js"></script>
 
