@@ -21,19 +21,19 @@ const scoreList = document.getElementById('score-list');
 const resetScoresButton = document.getElementById('reset-scores-button'); 
 
 const gridSize = 35; 
-const tileCount = canvas.width / gridSize; 
+const tileCount = canvas.width / gridSize; // 700 / 35 = 20
  
 // 게임 변수
 let score = 0;
-// 뱀 초기 위치를 유효 범위 내 (Y=7)로 수정
-let snake = [{ x: 12, y: 7 }, { x: 11, y: 7 }, { x: 10, y: 7 }]; 
+// 뱀 시작 위치를 원래 캔버스 중앙 근처 (18, 18)로 복구 (700x700 기준)
+let snake = [{ x: 18, y: 18 }, { x: 17, y: 18 }, { x: 16, y: 18 }]; 
 let direction = { x: 1, y: 0 }; 
 let nextDirection = { x: 1, y: 0 }; 
 let gameLoop;
 let isGameActive = false;
 let isPaused = false; // 일시정지 상태
 
-// 퀴즈 및 콤보 변수 (배열 전체 복구)
+// 퀴즈 및 콤보 변수 (전체 복구)
 const words = [
     { answer: "치즈", hint: "하얀 음식", initials: "ㅊㅈ" },
     { answer: "사과", hint: "달콤한 과일", initials: "ㅅㄱ" },
@@ -157,7 +157,9 @@ let bomb = {};
 let mushroom = {};
 let clock = {};
 let bigCheese = {}; 
-// catWeapon 관련 변수 제거
+let catWeapon = {}; 
+let bullets = [];
+let weaponInterval = null; 
 
 // 시각적 피드백
 let comboMessage = ''; 
@@ -199,6 +201,10 @@ function initializeGame() {
     generateItem('mushroom');
     generateItem('clock');
     generateItem('bigCheese'); 
+    generateItem('catWeapon'); // catWeapon 복구
+
+    if (weaponInterval) clearInterval(weaponInterval);
+    bullets = [];
     
     loadHighScores(); 
 
@@ -251,6 +257,7 @@ function generateItem(type) {
     else if (type === 'mushroom') mushroom = pos;
     else if (type === 'clock') clock = pos;
     else if (type === 'bigCheese') bigCheese = pos;
+    else if (type === 'catWeapon') catWeapon = pos;
 }
 
 // ===================================================================
@@ -300,7 +307,21 @@ function updateGame() {
         ateItem = true;
         generateItem('clock');
     }
+    else if (checkItemCollision(head, catWeapon)) { // catWeapon 충돌 로직 복구
+        if (snake.length > 3) snake.pop(); else { gameOver(); return; }
+        applyWeaponDebuff();
+        ateItem = true;
+        generateItem('catWeapon');
+    }
 
+    // 4-1. 총알(디버프) 충돌 감지
+    bullets.forEach(bullet => {
+        if (checkItemCollision(head, bullet)) {
+             if (snake.length > 2) { snake.pop(); } else { gameOver(); }
+             bullets = bullets.filter(b => b !== bullet); 
+        }
+    });
+    
     // 5. 꼬리 자르기 / 퀴즈 시작 결정
     if (quizRequired) {
         snake.pop(); 
@@ -311,7 +332,7 @@ function updateGame() {
         snake.pop(); 
     }
     
-    // 치즈/폭탄 재생성 확률
+    // 치즈/폭탄 재생성 확률 (유지)
     if (Object.keys(bomb).length === 0 && Math.random() < 0.3) generateItem('bomb');
     if (Object.keys(cheese).length === 0 && Math.random() < 0.5) generateItem('cheese');
     
@@ -340,6 +361,24 @@ function applySpeedChange(multiplier) {
         currentSpeed = initialSpeed; 
         startGameLoop(); 
     }, 5000); 
+}
+
+function applyWeaponDebuff() {
+    if (weaponInterval) clearInterval(weaponInterval);
+    
+    weaponInterval = setInterval(() => {
+        let bulletPos = getRandomPosition();
+        bullets.push(bulletPos); 
+        setTimeout(() => {
+            bullets = bullets.filter(b => b !== bulletPos);
+        }, 1000); 
+    }, 500); 
+
+    setTimeout(() => {
+        clearInterval(weaponInterval);
+        weaponInterval = null;
+        bullets = []; 
+    }, 5000);
 }
 
 // ===================================================================
@@ -428,7 +467,7 @@ function drawGame() {
     ctx.fillStyle = document.body.classList.contains('dark-mode') ? '#2c3e50' : '#ecf0f1';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 뱀 그리기
+    // 뱀 그리기: 사각형 기반
     snake.forEach((segment, index) => {
         ctx.fillStyle = index === 0 ? '#16a085' : '#1abc9c';
         ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
@@ -436,12 +475,20 @@ function drawGame() {
         ctx.strokeRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
     });
 
-    // 아이템 그리기
+    // 아이템 그리기 (각 심볼로 대체)
     drawItem(cheese, '#f1c40f', '🧀');
     drawItem(bomb, '#c0392b', '💣');
     drawItem(mushroom, '#8e44ad', '🍄');
     drawItem(clock, '#3498db', '⏳');
     drawItem(bigCheese, '#ffd700', '🥇');
+    // [복구] catWeapon 아이템 드로잉
+    drawItem(catWeapon, '#e74c3c', '🔫');
+
+    // [복구] 총알 그리기
+    bullets.forEach(bullet => {
+        ctx.fillStyle = '#e74c3c';
+        ctx.fillRect(bullet.x * gridSize + 5, bullet.y * gridSize + 5, gridSize - 10, gridSize - 10);
+    });
 
     // 일시정지 메시지 그리기
     if (isPaused && isGameActive && quizOverlay.classList.contains('hidden')) {
@@ -484,6 +531,7 @@ function gameOver() {
     isGameActive = false;
     clearInterval(gameLoop);
     if (itemTimer) clearTimeout(itemTimer);
+    if (weaponInterval) clearInterval(weaponInterval); // [복구]
     
     finalScoreDisplay.textContent = `최종 점수: ${score}점`;
     messageDisplay.classList.remove('hidden'); 
@@ -494,7 +542,7 @@ function gameOver() {
     playerNameInput.focus();
 }
 
-// [로컬 스토리지] 명예의 전당 로드
+// [로컬 스토리지] 명예의 전당 로드 (생략)
 function loadHighScores() {
     if (!scoreList) return; 
     
