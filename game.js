@@ -29,7 +29,7 @@ let nextDirection = { x: 1, y: 0 };
 let gameLoop;
 let isGameActive = false;
 
-// 퀴즈 및 콤보 변수
+
 const words = [
     { answer: "치즈", hint: "하얀 음식", initials: "ㅊㅈ" },
     { answer: "사과", hint: "달콤한 과일", initials: "ㅅㄱ" },
@@ -131,113 +131,7 @@ const words = [
     { answer: "부모님", hint: "나를 낳아 주신 분", initials: "ㅂㅁㄴ" },
     { answer: "동생", hint: "나보다 나이가 어린 형제", initials: "ㄷㅅ" },
     { answer: "형", hint: "남자에게 나이가 많은 남자 형제", initials: "ㅎ" },
-    { answer: "누나", hint: "남자에게 나이가 많은 여자 형제", initials: "ㄴㄴ" },
-    { answer: "바나나", hint: "길고 노란 열대 과일", initials: "ㅂㄴㄴ" },
-    { answer: "딸기", hint: "빨갛고 씨가 있는 작은 과일", initials: "ㄸㄱ" },
-    { answer: "수박", hint: "여름에 먹는 크고 둥근 과일", initials: "ㅅㅂ" },
-    { answer: "포도", hint: "작은 알갱이가 송이로 맺혀요", initials: "ㅍㄷ" },
-    { answer: "귤", hint: "겨울에 까먹는 주황색 과일", initials: "ㄱ" },
-    { answer: "토마토", hint: "빨간색 채소 같지만 과일", initials: "ㅌㅁㅌ" },
-    { answer: "당근", hint: "토끼가 좋아하는 주황색 채소", initials: "ㄷㄱ" },
-    { answer: "양파", hint: "썰면 눈이 매운 채소", initials: "ㅇㅍ" },
-    { answer: "감자", hint: "땅속에서 나는 동그란 채소", initials: "ㄱㅈ" },
-    { answer: "김치", hint: "한국의 매운 전통 반찬", initials: "ㄱㅊ" },
-    { answer: "밥", hint: "쌀로 지은 주식", initials: "ㅂ" },
-    { answer: "국", hint: "뜨거운 물에 건더기를 넣은 요리", initials: "ㄱ" },
-    { answer: "물", hint: "생명 유지에 필수적인 액체", initials: "ㅁ" },
-    { answer: "커피", hint: "검고 쓴 음료", initials: "ㅋㅍ" },
-    { answer: "우유", hint: "소에게서 나오는 하얀 액체", initials: "ㅇㅇ" },
-    { answer: "빵", hint: "밀가루로 만들어 구운 음식", initials: "ㅃ" },
-    { answer: "케이크", hint: "생일이나 기념일에 먹는 달콤한 빵", initials: "ㅋㅇㅋ" },
-    { answer: "피자", hint: "둥근 도우 위에 치즈와 토핑", initials: "ㅍㅈ" },
-    { answer: "라면", hint: "끓여 먹는 면 요리", initials: "ㄹㅁ" },
-    { answer: "돈", hint: "물건을 사거나 대가를 지불하는 수단", initials: "ㄷ" },
-    { answer: "지갑", hint: "돈과 카드를 넣어 다니는 것", initials: "ㅈㄱ" },
-    { answer: "열쇠", hint: "문을 잠그거나 여는 도구", initials: "ㅇㅆ" },
-    { answer: "문", hint: "방이나 건물의 입구", initials: "ㅁ" },
-    { answer: "창문", hint: "밖을 볼 수 있는 유리로 된 부분", initials: "ㅊㅁ" },
-    { answer: "액자", hint: "그림이나 사진을 넣어 걸어요", initials: "ㅇㅈ" },
-    { answer: "달", hint: "밤하늘에 뜨는 둥근 천체", initials: "ㄷ" },
-    { answer: "해", hint: "낮에 뜨는 밝은 천체", initials: "ㅎ" },
-    { answer: "별", hint: "밤하늘에 반짝이는 작은 점", initials: "ㅂ" },
-    { answer: "날씨", hint: "하늘의 상태, 비나 눈 등", initials: "ㄴㅆ" },
-    { answer: "옷", hint: "몸에 입는 것", initials: "ㅇ" },
-    { answer: "모자", hint: "머리에 쓰는 것", initials: "ㅁㅈ" },
-    { answer: "장갑", hint: "손에 끼는 것", initials: "ㅈㄱ" },
-    { answer: "목도리", hint: "겨울에 목에 두르는 것", initials: "ㅁㄷㄹ" },
-    { answer: "바지", hint: "다리에 입는 옷", initials: "ㅂㅈ" },
-    { answer: "치마", hint: "여성들이 다리에 두르는 옷", initials: "ㅊㅁ" },
-    { answer: "운동화", hint: "운동할 때 신는 신발", initials: "ㅇㄷㅎ" },
-    { answer: "샌들", hint: "여름에 신는 시원한 신발", initials: "ㅅㄷ" },
-    { answer: "책가방", hint: "책을 넣어 다니는 가방", initials: "ㅊㄱㅂ" },
-    { answer: "연고", hint: "다쳤을 때 바르는 약", initials: "ㅇㄱ" },
-    { answer: "약", hint: "병을 치료하거나 통증을 줄여주는 것", initials: "ㅇ" },
-    { answer: "온도계", hint: "온도를 재는 도구", initials: "ㅇㄷㄱ" },
-    { answer: "체육관", hint: "실내에서 운동하는 곳", initials: "ㅊㅇㄱ" },
-    { answer: "수영장", hint: "물놀이나 수영을 하는 곳", initials: "ㅅㅇㅈ" },
-    { answer: "박물관", hint: "역사적인 유물을 전시하는 곳", initials: "ㅂㅁㄱ" },
-    { answer: "미술관", hint: "그림이나 예술 작품을 전시하는 곳", initials: "ㅁㅅㄱ" },
-    { answer: "극장", hint: "영화나 연극을 보는 곳", initials: "ㄱㅈ" },
-    { answer: "노트북", hint: "휴대가 간편한 컴퓨터", initials: "ㄴㅌㅂ" },
-    { answer: "마이크", hint: "소리를 크게 만드는 장치", initials: "ㅁㅇㅋ" },
-    { answer: "카메라", hint: "사진이나 영상을 찍는 도구", initials: "ㅋㅁㄹ" },
-    { answer: "헤드폰", hint: "귀에 쓰고 소리를 듣는 장치", initials: "ㅎㄷㅍ" },
-    { answer: "전화", hint: "말소리를 전달하는 통신 수단", initials: "ㅈㅎ" },
-    { answer: "손가락", hint: "손에 달린 다섯 개의 작은 부분", initials: "ㅅㄱㄹ" },
-    { answer: "발가락", hint: "발에 달린 작은 부분", initials: "ㅂㄱㄹ" },
-    { answer: "머리", hint: "생각하고 얼굴이 있는 신체 부위", initials: "ㅁㄹ" },
-    { answer: "가슴", hint: "몸통의 앞쪽 윗부분", initials: "ㄱㅅ" },
-    { answer: "배", hint: "몸통의 중앙 앞부분", initials: "ㅂ" },
-    { answer: "다리", hint: "걷고 뛰는 데 사용하는 신체 부위", initials: "ㄷㄹ" },
-    { answer: "무릎", hint: "다리의 중간에 굽혀지는 관절", initials: "ㅁㄹ" },
-    { answer: "어깨", hint: "팔과 몸통이 연결되는 부분", initials: "ㅇㄲ" },
-    { answer: "코", hint: "냄새를 맡는 신체 기관", initials: "ㅋ" },
-    { answer: "입", hint: "음식을 먹고 말을 하는 기관", initials: "ㅇ" },
-    { answer: "눈", hint: "세상을 보는 기관", initials: "ㄴ" },
-    { answer: "귀", hint: "소리를 듣는 기관", initials: "ㄱ" },
-    { answer: "손톱", hint: "손가락 끝에 붙어있는 단단한 부분", initials: "ㅅㅌ" },
-    { answer: "발톱", hint: "발가락 끝에 붙어있는 단단한 부분", initials: "ㅂㅌ" },
-    { answer: "수학", hint: "수와 공간을 연구하는 학문", initials: "ㅅㅎ" },
-    { answer: "역사", hint: "과거의 일들을 기록한 것", initials: "ㅇㅅ" },
-    { answer: "과학", hint: "자연 현상을 탐구하는 학문", initials: "ㄱㅎ" },
-    { answer: "언어", hint: "말이나 글을 통해 소통하는 수단", initials: "ㅇㅇ" },
-    { answer: "기쁨", hint: "즐겁고 행복한 감정", initials: "ㄱㅃ" },
-    { answer: "슬픔", hint: "서글프고 눈물이 나는 감정", initials: "ㅅㅍ" },
-    { answer: "화", hint: "분노하고 격렬한 감정", initials: "ㅎ" },
-    { answer: "사랑", hint: "아끼고 좋아하는 마음", initials: "ㅅㄹ" },
-    { answer: "미움", hint: "싫어하고 증오하는 감정", initials: "ㅁㅇ" },
-    { answer: "시간", hint: "흐르는 동안의 개념", initials: "ㅅㄱ" },
-    { answer: "계절", hint: "봄, 여름, 가을, 겨울", initials: "ㄱㅈ" },
-    { answer: "어제", hint: "오늘의 바로 전날", initials: "ㅇㅈ" },
-    { answer: "오늘", hint: "지금 이 날", initials: "ㅇㄴ" },
-    { answer: "내일", hint: "오늘의 바로 다음날", initials: "ㄴㅇ" },
-    { answer: "일주일", hint: "월요일부터 일요일까지의 기간", initials: "ㅇㅈㅇ" },
-    { answer: "연간", hint: "일 년 동안", initials: "ㅇㄱ" },
-    { answer: "비", hint: "하늘에서 떨어지는 물방울", initials: "ㅂ" },
-    { answer: "눈", hint: "하늘에서 떨어지는 하얀 결정", initials: "ㄴ" },
-    { answer: "번개", hint: "하늘에서 순간적으로 빛나는 불꽃", initials: "ㅂㄱ" },
-    { answer: "천둥", hint: "번개와 함께 나는 큰 소리", initials: "ㅊㄷ" },
-    { answer: "무지개", hint: "비 온 뒤 하늘에 뜨는 일곱 색깔 고리", initials: "ㅁㅈㄱ" },
-    { answer: "파도", hint: "바다의 물결이 밀려오는 것", initials: "ㅍㄷ" },
-    { answer: "햇살", hint: "따뜻하게 비추는 햇빛", initials: "ㅎㅆ" },
-    { answer: "달팽이", hint: "껍데기를 등에 지고 다니는 작은 동물", initials: "ㄷㅍㅇ" },
-    { answer: "토끼", hint: "귀가 길고 풀을 좋아하는 동물", initials: "ㅌㄲ" },
-    { answer: "여우", hint: "꾀가 많은 것으로 알려진 동물", initials: "ㅇㅇ" },
-    { answer: "사자", hint: "갈기가 있는 맹수", initials: "ㅅㅈ" },
-    { answer: "호랑이", hint: "줄무늬가 있는 큰 맹수", initials: "ㅎㄹㅇ" },
-    { answer: "원숭이", hint: "나무를 잘 타고 바나나를 좋아하는 동물", initials: "ㅇㅅㅇ" },
-    { answer: "코끼리", hint: "코가 길고 덩치가 큰 동물", initials: "ㅋㄲㄹ" },
-    { answer: "기린", hint: "목이 매우 긴 동물", initials: "ㄱㄹ" },
-    { answer: "코알라", hint: "유칼립투스 잎을 먹고 사는 동물", initials: "ㅋㅇㄹ" },
-    { answer: "펭귄", hint: "남극에 살며 날지 못하는 새", initials: "ㅍㄱ" },
-    { answer: "북극곰", hint: "북극에 살고 흰 털을 가진 곰", initials: "ㅂㄱㄱ" },
-    { answer: "돌고래", hint: "바다에 살며 지능이 높은 동물", initials: "ㄷㄱㄹ" },
-    { answer: "새싹", hint: "식물이 처음 돋아나는 어린 잎", initials: "ㅆㅆ" },
-    { answer: "뿌리", hint: "식물을 땅에 고정시키고 물을 흡수하는 부분", initials: "ㅃㄹ" },
-    { answer: "가지", hint: "나무의 줄기에서 뻗어 나온 부분", initials: "ㄱㅈ" },
-    { answer: "줄기", hint: "식물의 몸을 지탱하는 부분", initials: "ㅈㄱ" },
-    { answer: "밭", hint: "채소를 기르는 넓은 땅", initials: "ㅂ" },
-    { answer: "논", hint: "벼를 기르는 물이 있는 땅", initials: "ㄴ" }
+    { answer: "누나", hint: "남자에게 나이가 많은 여자 형제", initials: "ㄴㄴ" }
 ];
 let currentQuizWord = '';
 let quizTimer;
@@ -259,15 +153,19 @@ let bomb = {};
 let mushroom = {};
 let clock = {};
 let bigCheese = {}; 
-// 고양이 무기 관련 변수 제거
+let catWeapon = {}; 
+let bullets = [];
+let weaponInterval = null; 
 
 // 시각적 피드백
 let comboMessage = ''; 
 let comboMessageTimer = null; 
 const comboMessageDuration = 1000; 
 
-// [추가] 명예의 전당 로직
-const MAX_HIGH_SCORES = 5; 
+let scorePopups = [];
+
+// 명예의 전당 로직
+const MAX_HIGH_SCORES = 10; 
 
 // ===================================================================
 // 2. 초기화 및 유틸리티 함수
@@ -284,15 +182,14 @@ function initializeGame() {
     
     messageDisplay.classList.add('hidden');
     quizOverlay.classList.add('hidden');
-    scoreDisplay.textContent = score;
-
-    // [추가] 명예의 전당 관련 초기화
+    
+    // 명예의 전당 UI 초기화 및 숨김 설정
     playerNameInput.classList.add('hidden');
     saveScoreButton.classList.add('hidden');
-    playerNameInput.value = '';
-    loadHighScores(); // 게임 시작 시 점수 목록 로드
+    
+    scoreDisplay.textContent = score;
 
-    // 뱀 시작 위치를 새로운 캔버스 중앙 근처 (12, 7)로 조정 (25x15 타일)
+    // 뱀 초기 위치 (Y=7)
     snake = [{ x: 12, y: 7 }, { x: 11, y: 7 }, { x: 10, y: 7 }];
 
     generateItem('cheese');
@@ -300,6 +197,8 @@ function initializeGame() {
     generateItem('mushroom');
     generateItem('clock');
     generateItem('bigCheese'); 
+    
+    loadHighScores(); 
 
     startGameLoop(); 
 }
@@ -309,10 +208,22 @@ function startGameLoop() {
     gameLoop = setInterval(updateGame, currentSpeed); 
 }
 
+function togglePause() {
+    if (!isGameActive) return; 
+    
+    isPaused = !isPaused;
+    
+    if (isPaused) {
+        clearInterval(gameLoop);
+        drawGame(); 
+    } else {
+        startGameLoop();
+    }
+}
+
 function getRandomPosition() {
     return {
         x: Math.floor(Math.random() * tileCount),
-        // 세로 타일 개수를 캔버스 높이를 이용해 계산합니다.
         y: Math.floor(Math.random() * (canvas.height / gridSize)) 
     };
 }
@@ -327,7 +238,6 @@ function generateItem(type) {
         pos = getRandomPosition();
     } while (isPositionOnSnake(pos));
 
-    // bomb은 50% 확률로 생성되지 않도록 로직을 조정하여 등장 빈도 조절
     if (type === 'bomb') {
         if (Math.random() < 0.5) { 
              return; 
@@ -346,7 +256,7 @@ function generateItem(type) {
 // ===================================================================
 
 function updateGame() {
-    if (!isGameActive) return;
+    if (!isGameActive || isPaused) return; 
 
     direction = nextDirection;
     const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
@@ -359,55 +269,55 @@ function updateGame() {
     snake.unshift(head);
     let quizRequired = false;
     let ateItem = false;
+    let itemPoints = 0; 
+    let itemPos = { x: head.x, y: head.y };
 
     // 4. 아이템 획득 및 효과
     if (checkItemCollision(head, cheese)) {
         quizRequired = true; 
     } else if (checkItemCollision(head, bigCheese)) {
-        score += 500;
+        itemPoints = 500;
+        score += itemPoints;
         snake.unshift(head); snake.unshift(head); 
         ateItem = true;
         generateItem('bigCheese');
     } 
-    // 고양이 무기(catWeapon) 로직 제거
     else if (checkItemCollision(head, bomb)) {
-        if (snake.length > 4) { snake.splice(snake.length - 3, 3); } 
+        if (snake.length > 4) { snake.splice(snake.length - 3, 3); itemPoints = -3; } 
         else { gameOver(); return; }
         ateItem = true;
         generateItem('bomb');
     } else if (checkItemCollision(head, mushroom)) {
         applySpeedChange(0.5); 
         ateItem = true;
+        itemPoints = "FAST!";
         generateItem('mushroom');
     } else if (checkItemCollision(head, clock)) {
         applySpeedChange(2.0); 
+        itemPoints = "SLOW!";
         ateItem = true;
         generateItem('clock');
     }
-
-    // 4-1. 총알(디버프) 충돌 감지 로직 제거
 
     // 5. 꼬리 자르기 / 퀴즈 시작 결정
     if (quizRequired) {
         snake.pop(); 
         isGameActive = false;
+        isPaused = true; 
         startQuiz();
     } else if (!ateItem) {
         snake.pop(); 
     }
     
-    // [수정 사항]: bomb이 필드에 없을 경우, 30% 확률로 생성 시도하여 등장 빈도 증가
+    // 치즈/폭탄 재생성 확률
     if (Object.keys(bomb).length === 0 && Math.random() < 0.3) generateItem('bomb');
-    
-    // [수정 사항]: 치즈가 필드에 없을 경우, 50% 확률로 생성 시도하여 등장 빈도 증가
     if (Object.keys(cheese).length === 0 && Math.random() < 0.5) generateItem('cheese');
     
     drawGame();
 }
 
-// 충돌 및 속도 함수
+// 충돌 및 속도 함수 (생략)
 function checkWallCollision(head) {
-    // 세로 충돌 검사 시 캔버스 높이를 이용합니다.
     const verticalTileCount = canvas.height / gridSize;
     return head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= verticalTileCount;
 }
@@ -417,7 +327,7 @@ function checkSelfCollision(head) {
 }
 
 function checkItemCollision(head, item) {
-    return head.x === item.x && head.y === item.y;
+    return head.x === item.x && item.y === item.y;
 }
 
 function applySpeedChange(multiplier) {
@@ -429,8 +339,6 @@ function applySpeedChange(multiplier) {
         startGameLoop(); 
     }, 5000); 
 }
-
-// applyWeaponDebuff 함수 제거
 
 // ===================================================================
 // 4. 퀴즈 및 콤보 시스템
@@ -445,7 +353,6 @@ function startQuiz() {
     quizInput.value = '';
     quizOverlay.classList.remove('hidden');
     
-    // 타자 입력 포커스 확보
     setTimeout(() => {
         quizInput.focus();
     }, 10); 
@@ -465,47 +372,42 @@ function handleQuizResult(isCorrect) {
     quizOverlay.classList.add('hidden');
     isGameActive = true;
     
+    isPaused = false; 
+    
     if (comboTimeout) clearTimeout(comboTimeout);
     if (comboMessageTimer) clearTimeout(comboMessageTimer);
     comboTimeout = setTimeout(resetCombo, maxComboTime); 
 
     if (isCorrect) {
-        // 콤보 및 점수 계산
         comboCount++; 
         comboMultiplier = 1 + Math.floor(comboCount / 3) * 0.5; 
         let points = 100 * comboMultiplier;
         score += points; 
         
-        // 난이도 상승
         level++;
         const newSpeed = initialSpeed * Math.pow(speedIncreaseRate, level); 
         currentSpeed = Math.max(newSpeed, 50); 
 
-        // 콤보 메시지 설정
         if (comboCount > 1) {
             comboMessage = `${comboCount} 콤보! (X ${comboMultiplier.toFixed(1)})`;
         } else {
             comboMessage = ''; 
         }
         
-        // 뱀 꼬리 증가
         snake.unshift({ x: snake[0].x, y: snake[0].y }); 
         
     } else {
-        // 오답 시 콤보 초기화 및 피드백
         resetCombo();
         comboMessage = 'COMBO BREAK!';
         if (snake.length > 3) { snake.pop(); }
     }
     
-    // 메시지 타이머 설정
     comboMessageTimer = setTimeout(() => {
         comboMessage = '';
         drawGame();
     }, comboMessageDuration);
     
     generateItem('cheese');
-    drawGame();
     startGameLoop(); 
 }
 
@@ -524,30 +426,27 @@ function drawGame() {
     ctx.fillStyle = document.body.classList.contains('dark-mode') ? '#2c3e50' : '#ecf0f1';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 뱀 그리기
+    // 뱀 그리기: 사각형 기반
     snake.forEach((segment, index) => {
         ctx.fillStyle = index === 0 ? '#16a085' : '#1abc9c';
         ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
         ctx.strokeStyle = '#2c3e50';
         ctx.strokeRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
     });
-    
-    // 아이템 그리기 (각 심볼로 대체)
+
+    // 아이템 그리기
     drawItem(cheese, '#f1c40f', '🧀');
     drawItem(bomb, '#c0392b', '💣');
     drawItem(mushroom, '#8e44ad', '🍄');
     drawItem(clock, '#3498db', '⏳');
     drawItem(bigCheese, '#ffd700', '🥇');
 
-    // 콤보 메시지 그리기
-    if (comboMessage) {
+    // 일시정지 메시지 그리기
+    if (isPaused && isGameActive && quizOverlay.classList.contains('hidden')) {
         ctx.textAlign = 'center';
-        ctx.font = 'bold 30px Arial';
-        ctx.shadowColor = 'black';
-        ctx.shadowBlur = 5;
-        ctx.fillStyle = comboMessage.includes('BREAK') ? '#e74c3c' : '#f1c40f';
-        ctx.fillText(comboMessage, canvas.width / 2, 50);
-        ctx.shadowBlur = 0;
+        ctx.font = 'bold 40px Arial';
+        ctx.fillStyle = document.body.classList.contains('dark-mode') ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)';
+        ctx.fillText("PAUSED", canvas.width / 2, canvas.height / 2);
     }
     
     // 레벨/배율 정보 그리기
@@ -587,63 +486,98 @@ function gameOver() {
     finalScoreDisplay.textContent = `최종 점수: ${score}점`;
     messageDisplay.classList.remove('hidden'); 
     
-    // [추가] 점수 등록 UI 표시
     playerNameInput.classList.remove('hidden');
     saveScoreButton.classList.remove('hidden');
+    
     playerNameInput.focus();
 }
 
-// [추가] 명예의 전당 로직
+// [로컬 스토리지] 명예의 전당 로드
 function loadHighScores() {
+    if (!scoreList) return; 
+    
     const scores = JSON.parse(localStorage.getItem('highScores')) || [];
     scores.sort((a, b) => b.score - a.score);
     
-    scoreList.innerHTML = scores.map((item, index) => {
-        return `<li>${index + 1}. ${item.name} - ${item.score}점</li>`;
+    scoreList.innerHTML = scores.slice(0, MAX_HIGH_SCORES).map((item, index) => {
+        const displayScore = item.score !== undefined ? item.score : 0;
+        const displayName = item.name || "UNNAMED";
+        return `<li>${index + 1}. ${displayName} - ${displayScore}점</li>`;
     }).join('');
-    return scores;
+
+    if (scores.length === 0) {
+        scoreList.innerHTML = `<li>[로컬 데이터] 등록된 점수가 없습니다.</li>`;
+    }
 }
 
+// [Google Forms] 명예의 전당 점수를 저장 (Forms 제출 로직)
 function saveHighScore() {
-    let name = playerNameInput.value.trim().toUpperCase();
+    if (saveScoreButton.disabled) return;
     
-    // [보안 강화] HTML 특수 문자 제거 (XSS 방지)
-    name = name.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    let name = playerNameInput.value.trim().toUpperCase();
+    name = name.substring(0, 3);
+    name = name.replace(/[^A-Z0-9ㄱ-ㅎ가-힣]/g, ''); 
     
     if (name.length === 0) {
         name = "GUEST";
     }
 
-    const newScore = { score, name };
-    const scores = loadHighScores(); // 최신 점수 로드
+    const finalScore = score;
+    
+    // ⚠️ Forms 제출 URL 및 ID를 사용하여 URL 구성 (Forms 제출 엔드포인트 URL 및 ID로 변경 필요)
+    const GOOGLE_FORM_SUBMIT_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdroV4zvGoDH9sXv3b8B2YOMQSOLZe_vROYXNV5KTeTDZ2R8A/formResponse";
+    const FORM_ENTRY_NAME_ID = "entry.1314839975";
+    const FORM_ENTRY_SCORE_ID = "entry.42631463";
+    
+    // 이 URL은 Forms의 "미리보기"에서 추출한 실제 필드 ID로 변경해야 합니다!
+    const submitUrl = `${GOOGLE_FORM_SUBMIT_URL}?${FORM_ENTRY_NAME_ID}=${encodeURIComponent(name)}&${FORM_ENTRY_SCORE_ID}=${finalScore}&submit=Submit`;
 
-    // 새로운 점수를 배열에 추가
-    scores.push(newScore);
-    
-    // 점수 기준으로 정렬 (내림차순)
-    scores.sort((a, b) => b.score - a.score);
+    saveScoreButton.disabled = true;
+    saveScoreButton.textContent = '등록 중...';
 
-    // 최대 개수 유지
-    const topScores = scores.slice(0, MAX_HIGH_SCORES);
-    
-    // 로컬 스토리지에 저장
-    localStorage.setItem('highScores', JSON.stringify(topScores));
-    
-    // UI 업데이트 및 버튼 숨기기
-    loadHighScores();
-    playerNameInput.classList.add('hidden');
-    saveScoreButton.classList.add('hidden');
+    // Google Forms로 데이터 전송
+    fetch(submitUrl, { method: 'POST', mode: 'no-cors' })
+        .then(() => {
+            alert(`${name}님의 ${finalScore}점이 Google Sheets에 등록되었습니다! 잠시 후 점수판을 확인하세요.`);
+        })
+        .catch(error => {
+            console.error("점수 제출 오류:", error);
+            alert("점수 제출 실패! (콘솔 확인)");
+        })
+        .finally(() => {
+            // UI 정리
+            playerNameInput.classList.add('hidden');
+            saveScoreButton.classList.add('hidden');
+        });
 }
 
-// [추가] 점수 등록 버튼 이벤트 리스너
-saveScoreButton.addEventListener('click', () => {
-    saveHighScore();
-});
+// 명예의 전당 초기화 기능
+function resetHighScores() {
+    if (confirm("정말 명예의 전당 점수를 모두 초기화하시겠습니까? (로컬 저장소만 초기화됩니다)")) {
+        localStorage.removeItem('highScores');
+        loadHighScores();
+        alert("점수가 초기화되었습니다!");
+    }
+}
+if (resetScoresButton) {
+    resetScoresButton.addEventListener('click', resetHighScores);
+}
 
-// 키보드 입력 처리 (방향키 및 Enter 재시작 기능 추가, 스크롤 방지 로직 포함)
+
+// [추가] 점수 등록 버튼 이벤트 리스너
+saveScoreButton.addEventListener('click', saveHighScore);
+
+
+// 키보드 입력 처리 (방향키, Enter, 일시정지 포함)
 document.addEventListener('keydown', (e) => {
     let newDirection = { x: direction.x, y: direction.y };
     let handled = false; 
+
+    // 일시정지 기능 (Spacebar 또는 P)
+    if ((e.key === ' ' || e.key.toLowerCase() === 'p') && isGameActive && quizOverlay.classList.contains('hidden')) {
+        togglePause();
+        handled = true;
+    }
 
     if ((e.key === 'ArrowUp' || e.key === 'w') && direction.y === 0) {
         newDirection = { x: 0, y: -1 };
@@ -658,9 +592,9 @@ document.addEventListener('keydown', (e) => {
         newDirection = { x: 1, y: 0 };
         handled = true;
     } 
-    // Enter 키로 게임 재시작 기능 (점수 등록 UI가 보이지 않을 때만 재시작 버튼 활성화)
+    // Enter 키로 게임 재시작 기능 (점수 등록 UI가 보이지 않을 때만)
     else if (e.key === 'Enter' && messageDisplay.classList.contains('hidden') === false && playerNameInput.classList.contains('hidden')) {
-        window.location.reload();
+        initializeGame();
         handled = true;
     }
     
@@ -669,10 +603,13 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault(); 
     }
 
-    nextDirection = newDirection;
+    // 일시정지 상태가 아닐 때만 방향 변경 적용
+    if (!isPaused) {
+        nextDirection = newDirection;
+    }
 });
 
-// 퀴즈 제출 이벤트 리스너
+// 퀴즈 제출 이벤트 리스너 (Enter 시 제출)
 quizSubmitButton.addEventListener('click', () => {
     if (quizInput.value.toLowerCase() === currentQuizWord.toLowerCase()) {
         handleQuizResult(true);
@@ -683,12 +620,10 @@ quizSubmitButton.addEventListener('click', () => {
 
 quizInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-        // 퀴즈 입력 중 엔터는 퀴즈 제출로 작동
         quizSubmitButton.click();
     }
 });
 
-// [추가] 점수 입력 필드에서 엔터 키 처리
 playerNameInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         saveScoreButton.click();
@@ -703,4 +638,3 @@ darkModeToggle.addEventListener('click', () => {
 
 // 게임 시작
 initializeGame();
-
